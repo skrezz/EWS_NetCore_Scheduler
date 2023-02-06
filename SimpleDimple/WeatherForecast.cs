@@ -1,4 +1,4 @@
-namespace EWS_NetCore_Scheduler
+namespace SimpleDimple
 {
     public class WeatherForecast
     {
