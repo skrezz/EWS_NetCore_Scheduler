@@ -6,12 +6,12 @@ namespace EWS_NetCore_Scheduler.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class EWSApiSchedulerController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
         {
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+        };
 
         /*private readonly ILogger<WeatherForecastController> _logger;
 
@@ -36,7 +36,7 @@ namespace EWS_NetCore_Scheduler.Controllers
 
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
+        public JsonResult Get()
         {
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
             service.Credentials = new WebCredentials("skrezz@outlook.com", "Snips123");
@@ -53,46 +53,28 @@ namespace EWS_NetCore_Scheduler.Controllers
             // Limit the properties returned to the appointment's subject, start time, and end time.
             cView.PropertySet = new PropertySet(AppointmentSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End, AppointmentSchema.Location);
             // Retrieve a collection of appointments by using the calendar view.
-            FindItemsResults<Appointment> appointments = calendar.FindAppointments(cView);
-            //Console.WriteLine("\nThe first " + NUM_APPTS + " appointments on your calendar from " + startDate.Date.ToShortDateString() +
-               //               " to " + endDate.Date.ToShortDateString() + " are: \n");
-            string strt = "Unnown1";
-            string end = "Unnown2";
-            string subj = "Unnown3";
-            string loc="Unnown4";
+            FindItemsResults<Appointment> appointments = calendar.FindAppointments(cView);            
 
+            Appo[] ApposArray = new Appo[appointments.Items.Count];
+            
+            int i = 0;
             foreach (Appointment a in appointments)
             {
-                subj=a.Subject.ToString();
-                strt=a.Start.ToString();
-                end=a.End.ToString();
+                Appo appo = new Appo();
+                appo.Subj = a.Subject.ToString();
+                appo.DateS = a.Start.ToString();
+                appo.DateE =a.End.ToString();
                 if (a.Location != null)
                 {
-                    loc= a.Location.ToString();
+                    appo.Loc = a.Location.ToString();
                 }
-                break;
+                ApposArray[i]= appo;
+                i++;
             }
-
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                DateS = strt,
-                DateE = end,
-                Loc = loc,
-                Subj=subj
-            })
-            .ToArray();
+    
+            return new JsonResult(ApposArray);
         }
 
-        /*[HttpGet(Name = "TestSmth")]
-        public IEnumerable<WeatherForecast> Gety()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = 123,
-                Summary = "312"
-            })
-            .ToArray();
-        }*/
+       
     }
 }
