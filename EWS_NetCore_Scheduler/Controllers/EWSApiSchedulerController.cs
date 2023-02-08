@@ -35,16 +35,16 @@ namespace EWS_NetCore_Scheduler.Controllers
         }
 
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public JsonResult Get()
+        [HttpGet(Name = "GetAppos")]
+        public JsonResult GetAppos(string startD)
         {
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
             service.Credentials = new WebCredentials("skrezz@outlook.com", "Snips123");
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.AutodiscoverUrl("skrezz@outlook.com", RedirectionUrlValidationCallback);
-            DateTime startDate = DateTime.Now;
-            DateTime endDate = startDate.AddDays(30);
+            DateTime startDate = DateTime.Parse(startD);
+            DateTime endDate = startDate.AddDays(1);
             //const int NUM_APPTS = 5;
             // Initialize the calendar folder object with only the folder ID. 
             CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
