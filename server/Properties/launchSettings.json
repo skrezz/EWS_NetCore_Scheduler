@@ -22,7 +22,6 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      //"launchUrl": "swagger",
       "launchUrl": "EWSApiScheduler2",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

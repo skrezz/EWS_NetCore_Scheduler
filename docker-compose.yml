@@ -1,0 +1,16 @@
+version: "3"
+services:
+  api:
+    build: ./server
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5152
+    ports:
+      - "7151:7151"
+      - "5152:5152"
+    container_name: scheduler-server
+  client:
+    build: ./client
+    ports:
+      - "9080:9080"
+    container_name: scheduler-client
