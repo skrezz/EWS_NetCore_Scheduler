@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\EWS_NetCore_Scheduler.props" />
+</Project>
