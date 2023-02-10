@@ -27,7 +27,7 @@ namespace EWS_NetCore_Scheduler.Service
             // Set the start and end time and number of appointments to retrieve.
             CalendarView cView = new CalendarView(startDate, endDate);
             // Limit the properties returned to the appointment's subject, start time, and end time.
-            cView.PropertySet = new PropertySet(AppointmentSchema.Subject, AppointmentSchema.Start, AppointmentSchema.End, AppointmentSchema.Location);
+            cView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
             // Retrieve a collection of appointments by using the calendar view.
             FindItemsResults<Appointment> appointments = calendar.FindAppointments(cView);
 
@@ -37,12 +37,12 @@ namespace EWS_NetCore_Scheduler.Service
             foreach (Appointment a in appointments)
             {
                 Appo appo = new Appo();
-                appo.Subj = a.Subject.ToString();
-                appo.DateS = a.Start.ToString();
-                appo.DateE = a.End.ToString();
-                if (a.Location != null)
+                appo.title = a.Subject.ToString();
+                appo.startDate = a.Start.ToString();
+                appo.endDate = a.End.ToString();
+                if (a.Sensitivity != null)
                 {
-                    appo.Loc = a.Location.ToString();
+                    appo.type = a.Sensitivity.ToString();
                 }
                 ApposArray[i] = appo;
                 i++;
