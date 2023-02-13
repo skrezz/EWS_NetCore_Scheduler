@@ -3,6 +3,7 @@ using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
 
+
 namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
@@ -13,8 +14,21 @@ namespace EWS_NetCore_Scheduler.Service
     {
         public JsonResult GetApposInfo(string startD)
         {
+            string PCName = "";
+            if (Environment.GetEnvironmentVariable("COMPUTERNAME") != null)
+            {
+                PCName = Environment.GetEnvironmentVariable("COMPUTERNAME");
+            }
+            string creds = Utils.GetLine(PCName, "Creds");
+            
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
-            service.Credentials = new WebCredentials("skrezz@outlook.com", "Snips123");
+            string t1 = creds.Remove(creds.IndexOf(" "));
+            string t2 = creds.Substring(creds.IndexOf(" "));
+
+            if (creds.Contains(" "))
+            service.Credentials = new WebCredentials(creds.Remove(creds.IndexOf(" ")), creds.Substring(creds.IndexOf(" ")+1));
+            else
+                service.Credentials = new WebCredentials(creds.Remove(creds.IndexOf(";")), creds.Substring(creds.IndexOf(";")+1));
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
