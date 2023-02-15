@@ -5,6 +5,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5152
+      - EWS_USER=${EWS_USER}
+      - EWS_PWD=${EWS_PWD}
     ports:
       - "7151:7151"
       - "5152:5152"
