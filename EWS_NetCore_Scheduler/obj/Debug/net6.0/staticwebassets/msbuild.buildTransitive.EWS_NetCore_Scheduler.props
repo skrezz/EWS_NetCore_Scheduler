@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\EWS_NetCore_Scheduler.props" />
-</Project>

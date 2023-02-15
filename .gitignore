@@ -1,0 +1,7 @@
+#Ingore all
+*
+#Except this
+!.gitignore
+!docker-compose.yml
+!client/*
+!server/*
