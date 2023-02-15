@@ -14,19 +14,19 @@ namespace EWS_NetCore_Scheduler.Service
     {
         public JsonResult GetApposInfo(string startD)
         {
-            string PCName = "";
-            if (Environment.GetEnvironmentVariable("COMPUTERNAME") != null)
+            string creds = "";
+            if (Environment.GetEnvironmentVariable(Environment.GetEnvironmentVariable("COMPUTERNAME")) != null)
             {
-                PCName = Environment.GetEnvironmentVariable("COMPUTERNAME");
+                creds = Environment.GetEnvironmentVariable(Environment.GetEnvironmentVariable("COMPUTERNAME"));
             }
-            string creds = Utils.GetLine(PCName, "Creds");
+            //string creds = Utils.GetLine(PCName, "Creds");
             
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2007_SP1);
-            string t1 = creds.Remove(creds.IndexOf(" "));
-            string t2 = creds.Substring(creds.IndexOf(" "));
+            string t1 = creds.Remove(creds.IndexOf(";"));
+            string t2 = creds.Substring(creds.IndexOf(";"));
 
-            if (creds.Contains(" "))
-            service.Credentials = new WebCredentials(creds.Remove(creds.IndexOf(" ")), creds.Substring(creds.IndexOf(" ")+1));
+            if (creds.Contains(";"))
+            service.Credentials = new WebCredentials(creds.Remove(creds.IndexOf(";")), creds.Substring(creds.IndexOf(";")+1));
             else
                 service.Credentials = new WebCredentials(creds.Remove(creds.IndexOf(";")), creds.Substring(creds.IndexOf(";")+1));
             service.TraceEnabled = true;
@@ -39,25 +39,34 @@ namespace EWS_NetCore_Scheduler.Service
             // Initialize the calendar folder object with only the folder ID. 
             CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
             // Set the start and end time and number of appointments to retrieve.
-            CalendarView cView = new CalendarView(startDate, endDate);
+            ItemView iView = new ItemView(20);
             // Limit the properties returned to the appointment's subject, start time, and end time.
-            cView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
+            iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
+            
             // Retrieve a collection of appointments by using the calendar view.
-            FindItemsResults<Appointment> appointments = calendar.FindAppointments(cView);
+            FindItemsResults<Item> appointments = service.FindItems(WellKnownFolderName.Calendar, iView);
 
             Appo[] ApposArray = new Appo[appointments.Items.Count];
-
+            
             int i = 0;
             foreach (Appointment a in appointments)
             {
-                Appo appo = new Appo();
+                string[] RecStrings = RecStrings = EWSs.GetRelatedRecurrenceCalendarItems(service, a);
+                Appo appo = new Appo();                
                 appo.title = a.Subject.ToString();
                 appo.startDate = a.Start.ToString();
                 appo.endDate = a.End.ToString();
-                if (a.Sensitivity != null)
+                if (a.IsAllDayEvent != null)                
+                    appo.allDay = a.IsAllDayEvent;
+                if (a.Id != null)
+                    appo.id = a.Id.ToString();
+                if (RecStrings[0]!=null)
                 {
-                    appo.type = a.Sensitivity.ToString();
+                    appo.rRule = "RRULE:"+RecStrings[1];
+                    appo.DTSTART = "DTSTART;"+RecStrings[0];
                 }
+                /*if (a.ex != null)
+                    appo.exDate = a.Recurrence.ToString();*/
                 ApposArray[i] = appo;
                 i++;
             }
