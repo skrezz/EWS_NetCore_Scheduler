@@ -1,9 +1,14 @@
 import React from 'react';
-import Scheduler from './components/Scheduler';
+import {DevScheduler} from './components/Scheduler';
+import { QueryClient, QueryClientProvider } from "react-query";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <Scheduler/>
+    <QueryClientProvider client={queryClient}>
+      <DevScheduler/>
+    </QueryClientProvider>
   );
 }
 
