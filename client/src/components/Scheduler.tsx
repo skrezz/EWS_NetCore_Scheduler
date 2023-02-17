@@ -20,7 +20,7 @@ export function DevScheduler() {
 
   
  
-  const [currentDate, setCurrentDate] = React.useState(new Date(2023, 1, 16));
+  const [currentDate, setCurrentDate] = React.useState(new Date());
 
   const { isLoading, error, data, isFetching } = useQuery<
     AppointmentModel[],
@@ -28,7 +28,7 @@ export function DevScheduler() {
   >("appointmentData", () =>
     axios
       .get(
-        `http://scheduler-server:5152/EWSApiScheduler?startD=${currentDate.toISODate()}`
+        `http://localhost:5152/EWSApiScheduler?startD=${currentDate.toISODate()}`
       )
       .then((res) => res.data)
   );
@@ -44,7 +44,7 @@ export function DevScheduler() {
           currentDate={currentDate}
           onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
         />
-        <DayView startDayHour={9} endDayHour={14} />
+        <DayView startDayHour={9} endDayHour={19} />
         <Toolbar />
         <DateNavigator />
         <TodayButton />

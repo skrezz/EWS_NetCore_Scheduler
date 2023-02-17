@@ -7,6 +7,7 @@ services:
       - ASPNETCORE_URLS=http://+:5152
       - EWS_USER=${EWS_USER}
       - EWS_PWD=${EWS_PWD}
+      - TZ=${TZ}
     ports:
       - "7151:7151"
       - "5152:5152"
