@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
+using EWS_NetCore_Scheduler.Service;
+using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Exchange.WebServices.Data;
 
 
@@ -9,29 +11,17 @@ namespace EWS_NetCore_Scheduler.Service
     public interface ISchedulingService
     {
         public JsonResult GetApposInfo(string startD);
+        public void PostAppo(JsonResult JSPullAppo);
     }
     public class SchedulingService: ISchedulingService
     {
 
-        private WebCredentials getWebCreds(){
-           
-            string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
-            string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
-
-            if (ews_user == null || ews_pwd == null) throw new ArgumentNullException("User or password is not provided");
-            return new WebCredentials(ews_user, ews_pwd);   
-        
-        }
+       
 
         public JsonResult GetApposInfo(string startD)
-        {          
-         
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016);
-            service.Credentials = getWebCreds();
-            service.TraceEnabled = true;
-            service.TraceFlags = TraceFlags.All;
-            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
-          
+        {
+
+            ExchangeService service = EWSs.CrEwsService();
             DateTime startDate = DateTime.Parse(startD);
             DateTime endDate = startDate.AddDays(1);
             //const int NUM_APPTS = 5;
@@ -71,6 +61,14 @@ namespace EWS_NetCore_Scheduler.Service
             }
 
             return new JsonResult(ApposArray);
+            
+        }
+
+        public void PostAppo(JsonResult JSPullAppo)
+        {
+            ExchangeService service = EWSs.CrEwsService();
+            Appointment appointment = new Appointment(service);
+            Appo ap = (Appo)JSPullAppo.Value;
             
         }
     }

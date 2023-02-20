@@ -8,6 +8,16 @@ namespace EWS_NetCore_Scheduler.Service
         {
             return null;
         }
+        public static WebCredentials getWebCreds()
+        {
+
+            string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
+            string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
+
+            if (ews_user == null || ews_pwd == null) throw new ArgumentNullException("User or password is not provided");
+            return new WebCredentials(ews_user, ews_pwd);
+
+        }
         public static string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
         {
             //Appointment calendarItem = Appointment.Bind(service, itemId, new PropertySet(AppointmentSchema.AppointmentType));
@@ -67,5 +77,16 @@ namespace EWS_NetCore_Scheduler.Service
             
             return rrule;
         }
+
+        public static ExchangeService CrEwsService()
+        {
+            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016);
+            service.Credentials = getWebCreds();
+            service.TraceEnabled = true;
+            service.TraceFlags = TraceFlags.All;
+            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
+            return service;
+        }
+
     }
 }
