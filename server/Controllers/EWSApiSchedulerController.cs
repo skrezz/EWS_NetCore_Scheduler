@@ -1,3 +1,4 @@
+using EWS_NetCore_Scheduler.Interfaces;
 using EWS_NetCore_Scheduler.Models;
 using EWS_NetCore_Scheduler.Service;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,14 @@ namespace EWS_NetCore_Scheduler.Controllers
             return ApposInfo.GetApposInfo(startD);
         }
         [HttpPost(Name = "PostAppos")]
-        public void PostAppos(string startD)
+        public string PostAppos(JsonResult JSPullAppo)
         {
-
-            string fileName = @"..\server\tests\PostAppos\PostAppoIn.json";
+            IEWSActing EWSAct = new EWSs();
+            ExchangeService service = EWSAct.CrEwsService();
+            return EWSAct.PostOrEditAppo(service, JSPullAppo);
+            /*string fileName = @"..\server\tests\PostAppos\PostAppoIn.json";
             string jsonString = System.IO.File.ReadAllText(fileName);             
-            Appo[] app = JsonSerializer.Deserialize<Appo[]>(jsonString);
+            Appo[] app = JsonSerializer.Deserialize<Appo[]>(jsonString);*/
 
 
         }

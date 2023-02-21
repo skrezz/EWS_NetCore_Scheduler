@@ -1,14 +1,12 @@
-﻿using Microsoft.Exchange.WebServices.Data;
+﻿using EWS_NetCore_Scheduler.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Exchange.WebServices.Data;
 
 namespace EWS_NetCore_Scheduler.Service
 {
-    public class EWSs
+    public class EWSs:IEWSActing
     {
-        public static FindItemsResults<Item> GetAppos(DateTime startDate, DateTime endDate, ExchangeService service)
-        {
-            return null;
-        }
-        public static WebCredentials getWebCreds()
+        public WebCredentials getWebCreds()
         {
 
             string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
@@ -18,7 +16,16 @@ namespace EWS_NetCore_Scheduler.Service
             return new WebCredentials(ews_user, ews_pwd);
 
         }
-        public static string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
+        public ExchangeService CrEwsService()
+        {
+            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016);
+            service.Credentials = getWebCreds();
+            service.TraceEnabled = true;
+            service.TraceFlags = TraceFlags.All;
+            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
+            return service;
+        }
+        public string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
         {
             //Appointment calendarItem = Appointment.Bind(service, itemId, new PropertySet(AppointmentSchema.AppointmentType));
             string[] rrule = new string[2]; 
@@ -50,15 +57,16 @@ namespace EWS_NetCore_Scheduler.Service
                     recurrMaster = Appointment.BindToRecurringMaster(service, calendarItem.Id, props);
                     break;
             }
-
-            //recurrMaster.Recurrence;
             Recurrence RecFin=recurrMaster.Recurrence;
+            //Working with reccurences require a right pattern. Right now it works only with Weekly Pattern.
             switch (recurrMaster.Recurrence.GetType().ToString())
             {
                 case string a when a.Contains("WeeklyPattern"):
+                    //Taking collsection of days from reccurence
                     Recurrence.WeeklyPattern wp = (Recurrence.WeeklyPattern)recurrMaster.Recurrence;
                     DayOfTheWeekCollection dotwCol = wp.DaysOfTheWeek;
                     string recDays = "";
+                    //forming rrule
                     foreach(DayOfTheWeek dotw in dotwCol)
                     {
                         recDays = recDays + dotw.ToString().ToUpper().Remove(2)+",";
@@ -72,21 +80,18 @@ namespace EWS_NetCore_Scheduler.Service
                          ";WKST=MO;" +
                          "BYDAY="+ recDays;
                     break;
-            }          
-
-            
+            } 
             return rrule;
         }
 
-        public static ExchangeService CrEwsService()
+        public string PostOrEditAppo(ExchangeService service, JsonResult JSPullAppo)
         {
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016);
-            service.Credentials = getWebCreds();
-            service.TraceEnabled = true;
-            service.TraceFlags = TraceFlags.All;
-            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
-            return service;
+            Appointment newAppo = new Appointment(service);
+            newAppo.Subject = "Test3";            
+            newAppo.Start = DateTime.Now;
+            newAppo.Save(SendInvitationsMode.SendToNone);
+            Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
+            return "ok";
         }
-
     }
 }

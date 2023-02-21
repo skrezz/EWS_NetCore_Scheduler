@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using EWS_NetCore_Scheduler.Service;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Exchange.WebServices.Data;
+using EWS_NetCore_Scheduler.Interfaces;
 
 
 namespace EWS_NetCore_Scheduler.Service
@@ -11,17 +12,14 @@ namespace EWS_NetCore_Scheduler.Service
     public interface ISchedulingService
     {
         public JsonResult GetApposInfo(string startD);
-        public void PostAppo(JsonResult JSPullAppo);
+        public string PostAppo(JsonResult JSPullAppo);
     }
     public class SchedulingService: ISchedulingService
-    {
-
-       
-
+    {   
         public JsonResult GetApposInfo(string startD)
         {
-
-            ExchangeService service = EWSs.CrEwsService();
+            IEWSActing EWSAct = new EWSs();
+            ExchangeService service = EWSAct.CrEwsService();
             DateTime startDate = DateTime.Parse(startD);
             DateTime endDate = startDate.AddDays(1);
             //const int NUM_APPTS = 5;
@@ -40,7 +38,7 @@ namespace EWS_NetCore_Scheduler.Service
             int i = 0;
             foreach (Appointment a in appointments)
             {
-                string[] RecStrings = RecStrings = EWSs.GetRelatedRecurrenceCalendarItems(service, a);
+                string[] RecStrings = RecStrings = EWSAct.GetRelatedRecurrenceCalendarItems(service, a);
                 Appo appo = new Appo();                
                 appo.title = a.Subject.ToString();
                 appo.startDate = a.Start.ToString();
@@ -64,12 +62,11 @@ namespace EWS_NetCore_Scheduler.Service
             
         }
 
-        public void PostAppo(JsonResult JSPullAppo)
+        public string PostAppo(JsonResult JSPullAppo)
         {
-            ExchangeService service = EWSs.CrEwsService();
-            Appointment appointment = new Appointment(service);
-            Appo ap = (Appo)JSPullAppo.Value;
-            
+            IEWSActing EWSAct = new EWSs();
+            ExchangeService service = EWSAct.CrEwsService();
+            return EWSAct.PostOrEditAppo(service, JSPullAppo);            
         }
     }
 }
