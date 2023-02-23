@@ -1,6 +1,8 @@
 ﻿using EWS_NetCore_Scheduler.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace EWS_NetCore_Scheduler.Service
 {
@@ -18,7 +20,7 @@ namespace EWS_NetCore_Scheduler.Service
         }
         public ExchangeService CrEwsService()
         {
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016);
+            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016,TimeZoneInfo.Utc);
             service.Credentials = getWebCreds();
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
@@ -84,13 +86,15 @@ namespace EWS_NetCore_Scheduler.Service
             return rrule;
         }
 
-        public string PostOrEditAppo(ExchangeService service, JsonResult JSPullAppo)
+        public string PostOrEditAppo(ExchangeService service, JsonElement JSPullAppo)
         {
-            Appointment newAppo = new Appointment(service);
-            newAppo.Subject = "Test3";            
-            newAppo.Start = DateTime.Now;
-            newAppo.Save(SendInvitationsMode.SendToNone);
-            Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
+            ISchedulingService ssPost = new SchedulingService();
+            Appointment[] newAppos = ssPost.PostAppoLogic(service, JSPullAppo);
+            foreach (Appointment newAppo in newAppos)
+            {
+                newAppo.Save(SendInvitationsMode.SendToNone);
+                Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
+            }
             return "ok";
         }
     }

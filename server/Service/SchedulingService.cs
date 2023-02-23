@@ -5,14 +5,15 @@ using EWS_NetCore_Scheduler.Service;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Exchange.WebServices.Data;
 using EWS_NetCore_Scheduler.Interfaces;
-
+using System.Text.Json.Nodes;
+using System.Security.Cryptography.Xml;
 
 namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
         public JsonResult GetApposInfo(string startD);
-        public string PostAppo(JsonResult JSPullAppo);
+        public Appointment[] PostAppoLogic(ExchangeService service, JsonElement JSPullAppo);
     }
     public class SchedulingService: ISchedulingService
     {   
@@ -62,11 +63,42 @@ namespace EWS_NetCore_Scheduler.Service
             
         }
 
-        public string PostAppo(JsonResult JSPullAppo)
+        public Appointment[] PostAppoLogic(ExchangeService service, JsonElement JSPullAppo)
         {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            return EWSAct.PostOrEditAppo(service, JSPullAppo);            
+            
+            var items = JsonNode.Parse(JSPullAppo.ToString());
+            JsonObject[] JsObjs =new JsonObject[1];
+            Appointment[] newAppos = new Appointment[1];
+            if (items.GetType().Name=="JsonArray")
+            {
+                JsObjs = new JsonObject[items.AsArray().Count];
+                int i =0;
+                foreach(var item in items.AsArray())
+                {
+                    JsObjs[i] = item.AsObject();
+                    i++;
+                }
+                newAppos = new Appointment[items.AsArray().Count];
+            }
+            else
+            {
+                JsObjs[0] = items.AsObject();
+            }
+            int j = 0;
+            foreach(JsonObject jso in JsObjs)
+            {
+                Appointment newAppo = new Appointment(service);
+                newAppo.Subject = jso["title"].ToString();
+                newAppo.Start = DateTime.Parse(jso["startDate"].ToString());
+                newAppos[j] = newAppo;
+                j++;
+            }  
+                /*newAppo.Subject = "Test3";
+            newAppo.Start = DateTime.Now;*/
+            //newAppo.Save(SendInvitationsMode.SendToNone);
+            
+            
+            return newAppos;            
         }
     }
 }

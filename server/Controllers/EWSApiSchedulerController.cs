@@ -20,15 +20,16 @@ namespace EWS_NetCore_Scheduler.Controllers
             return ApposInfo.GetApposInfo(startD);
         }
         [HttpPost(Name = "PostAppos")]
-        public string PostAppos(JsonResult JSPullAppo)
+        public string PostAppos(JsonElement JSPullAppo)
         {
             IEWSActing EWSAct = new EWSs();
             ExchangeService service = EWSAct.CrEwsService();
             return EWSAct.PostOrEditAppo(service, JSPullAppo);
-            /*string fileName = @"..\server\tests\PostAppos\PostAppoIn.json";
+            //return "fine";
+            /*string fileName = @"D:\Proggin\Igor\Scheduler\test\POST\PostAppoIn.json";
             string jsonString = System.IO.File.ReadAllText(fileName);             
-            Appo[] app = JsonSerializer.Deserialize<Appo[]>(jsonString);*/
-
+            //Appo[] app = JsonSerializer.Deserialize<Appo[]>(jsonString);*/
+            return "fine";
 
         }
 
