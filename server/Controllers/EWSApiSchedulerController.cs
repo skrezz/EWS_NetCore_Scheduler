@@ -12,25 +12,25 @@ namespace EWS_NetCore_Scheduler.Controllers
     [Route("[controller]")]
     public class EWSApiSchedulerController : ControllerBase
     {     
-        [HttpGet(Name = "GetAppos")]
+        [HttpGet("GetAppos")]
         public JsonResult GetAppos(string startD)
         {
-            ISchedulingService ApposInfo = new SchedulingService();
+            IEWSActing ApposInfo = new EWSs();
             JsonResult js = ApposInfo.GetApposInfo(startD);
             return ApposInfo.GetApposInfo(startD);
         }
-        [HttpPost(Name = "PostAppos")]
+        [HttpPost("PostAppos")]
         public string PostAppos(JsonElement JSPullAppo)
         {
             IEWSActing EWSAct = new EWSs();
             ExchangeService service = EWSAct.CrEwsService();
             return EWSAct.PostOrEditAppo(service, JSPullAppo);
-            //return "fine";
-            /*string fileName = @"D:\Proggin\Igor\Scheduler\test\POST\PostAppoIn.json";
-            string jsonString = System.IO.File.ReadAllText(fileName);             
-            //Appo[] app = JsonSerializer.Deserialize<Appo[]>(jsonString);*/
-            return "fine";
-
+        }
+        [HttpGet("DelAppo")]
+        public string DelAppo(string id)
+        {
+            IEWSActing appo= new EWSs();            
+            return appo.DelAppo(id);
         }
 
 
