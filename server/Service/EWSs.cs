@@ -26,47 +26,41 @@ namespace EWS_NetCore_Scheduler.Service
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
+
             return service;
         }
-
-        public JsonResult GetApposInfo(string startD)
+        public FindItemsResults<Item> appointments(ExchangeService service)
         {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            ISchedulingService GetAppoServ = new SchedulingService();
-            Appo[] ApposArray = GetAppoServ.GetApposLogic(service, startD);
-            return new JsonResult(ApposArray);
+            CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
+            ItemView iView = new ItemView(20);
+            // Limit the properties returned to the appointment's subject, start time, and end time.
+            iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
 
-        }
-        
+            // Retrieve a collection of appointments by using the calendar view.
+            return service.FindItems(WellKnownFolderName.Calendar, iView);
+        }           
 
-        public string PostOrEditAppo(ExchangeService service, JsonElement JSPullAppo)
+
+        public string DelAppo(Appointment appointment)
         {
-            ISchedulingService ssPost = new SchedulingService();
-            Appointment[] newAppos = ssPost.PostAppoLogic(service, JSPullAppo);
-            foreach (Appointment newAppo in newAppos)
-            {
-                if(newAppo != null)
-                try
-                {
-                    newAppo.Save(SendInvitationsMode.SendToNone);
-                    Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
-                }
-                catch (System.InvalidOperationException ex)
-                {
-
-                }
-            }
-            return "ok";
-        }
-
-        public string DelAppo(string id)
-        {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            Appointment delAppo = Appointment.Bind(service,id,new PropertySet(BasePropertySet.IdOnly));
-            delAppo.Delete(DeleteMode.SoftDelete);
+            appointment.Delete(DeleteMode.SoftDelete);
             return "deleted_";
+        }
+
+        public Appointment EWSAppoBind(ExchangeService service, string id, PropertySet PSet)
+        {
+            return Appointment.Bind(service, id, PSet);
+        }
+
+        public void EWSAppoUpdate(Appointment appo,ConflictResolutionMode conflictResolutionMode, SendInvitationsOrCancellationsMode mode)
+        {
+            appo.Update(conflictResolutionMode, mode);
+        }
+
+        public Appointment EWSBindToRecurringMaster(ExchangeService service, string id, PropertySet props)
+        {
+            Appointment test= Appointment.BindToRecurringMaster(service, id, props);
+            return Appointment.BindToRecurringMaster(service, id, props);
         }
     }
 }
