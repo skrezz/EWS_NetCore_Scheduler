@@ -66,7 +66,7 @@ namespace EWS_NetCore_Scheduler.Service
             ExchangeService service = EWSAct.CrEwsService();
             Appointment delAppo = Appointment.Bind(service,id,new PropertySet(BasePropertySet.IdOnly));
             delAppo.Delete(DeleteMode.SoftDelete);
-            return "deleted";
+            return "deleted_";
         }
     }
 }
