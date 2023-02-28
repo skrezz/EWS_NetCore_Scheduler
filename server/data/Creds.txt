@@ -1,1 +1,2 @@
-SKRE=skrezz@outlook.com;Snips123
+EWS_USER=skrezz@outlook.com
+EWS_PWD=Snips123
