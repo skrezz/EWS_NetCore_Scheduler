@@ -15,21 +15,19 @@ namespace EWS_NetCore_Scheduler.Controllers
         [HttpGet("GetAppos")]
         public JsonResult GetAppos(string startD)
         {
-            IEWSActing ApposInfo = new EWSs();
-            JsonResult js = ApposInfo.GetApposInfo(startD);
-            return ApposInfo.GetApposInfo(startD);
+            ISchedulingService ApposInfo = new SchedulingService();            
+            return ApposInfo.GetAppos(startD);
         }
         [HttpPost("PostAppos")]
         public string PostAppos(JsonElement JSPullAppo)
         {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            return EWSAct.PostOrEditAppo(service, JSPullAppo);
+            ISchedulingService PostAppo = new SchedulingService();            
+            return PostAppo.PostAppo(JSPullAppo);
         }
         [HttpGet("DelAppo")]
         public string DelAppo(string id)
         {
-            IEWSActing appo= new EWSs();            
+            ISchedulingService appo= new SchedulingService();            
             return appo.DelAppo(id);
         }
 
