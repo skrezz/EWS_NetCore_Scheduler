@@ -5,12 +5,12 @@ using System.Text.Json.Nodes;
 
 namespace EWS_NetCore_Scheduler.Interfaces
 {
-    interface IEWSActing
+    public interface IEWSActing
     {
             WebCredentials getWebCreds();
             ExchangeService CrEwsService();                 
             
-            string DelAppo(Appointment appointment);
+            string EWSDelAppo(Appointment appointment);
         FindItemsResults<Item> appointments(ExchangeService service);
         Appointment EWSAppoBind(ExchangeService service, string id, PropertySet PSet);
         void EWSAppoUpdate(Appointment appo, ConflictResolutionMode conflictResolutionMode, SendInvitationsOrCancellationsMode mode);

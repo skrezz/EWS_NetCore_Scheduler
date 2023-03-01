@@ -20,12 +20,17 @@ namespace EWS_NetCore_Scheduler.Service
     }
     public class SchedulingService: ISchedulingService
     {
+        private readonly IEWSActing _EWSActing;
+        public SchedulingService(IEWSActing EWS)
+        {
+            _EWSActing = EWS;
+        }
         public string DelAppo(string id)
         {
-            IEWSActing EWS = new EWSs();
-            ExchangeService service = EWS.CrEwsService();
-            Appointment delAppo = EWS.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
-            EWS.DelAppo(delAppo);
+            //IEWSActing EWS = new EWSs();
+            ExchangeService service = _EWSActing.CrEwsService();
+            Appointment delAppo = _EWSActing.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
+            _EWSActing.EWSDelAppo(delAppo);
             return "deleted";
         }
 

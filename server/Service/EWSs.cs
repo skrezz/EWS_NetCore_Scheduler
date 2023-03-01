@@ -41,8 +41,9 @@ namespace EWS_NetCore_Scheduler.Service
         }           
 
 
-        public string DelAppo(Appointment appointment)
+        public string EWSDelAppo(Appointment appointment)
         {
+
             appointment.Delete(DeleteMode.SoftDelete);
             return "deleted_";
         }
