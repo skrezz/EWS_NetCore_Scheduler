@@ -40,12 +40,12 @@ namespace EWS_NetCore_Scheduler.Service
             DateTime startDate = DateTime.Parse(startD);
             DateTime endDate = startDate;
            
-            IEWSActing EWS = new EWSs();
+            IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            FindItemsResults<Item> appointments = EWS.appointments(service);
+            Appointment[] appointments = EWS.FindAppointments(service);
 
-            Appo[] ApposArray = new Appo[appointments.Items.Count];
+            Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
             foreach (Appointment a in appointments)
@@ -64,8 +64,7 @@ namespace EWS_NetCore_Scheduler.Service
                     appo.rRule = "RRULE:" + RecStrings[1];
                     appo.DTSTART = "DTSTART;" + RecStrings[0];
                 }
-                /*if (a.ex != null)
-                    appo.exDate = a.Recurrence.ToString();*/
+
                 ApposArray[i] = appo;
                 i++;
             }

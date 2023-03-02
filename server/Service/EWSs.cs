@@ -29,15 +29,23 @@ namespace EWS_NetCore_Scheduler.Service
 
             return service;
         }
-        public FindItemsResults<Item> appointments(ExchangeService service)
+        public Appointment[] FindAppointments(ExchangeService service)
         {
+            IEWSActing EWS = new EWSs();
             CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
             ItemView iView = new ItemView(20);
             // Limit the properties returned to the appointment's subject, start time, and end time.
             iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-
+            FindItemsResults<Item> appointments = service.FindItems(WellKnownFolderName.Calendar, iView);
             // Retrieve a collection of appointments by using the calendar view.
-            return service.FindItems(WellKnownFolderName.Calendar, iView);
+            Appointment[] apps = new Appointment[appointments.Items.Count];
+            int i = 0;
+            foreach(Appointment a in appointments)
+            {
+                apps[i] = a;
+                i++;
+            }
+            return apps;
         }           
 
 

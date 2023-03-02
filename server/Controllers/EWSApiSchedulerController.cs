@@ -12,7 +12,8 @@ namespace EWS_NetCore_Scheduler.Controllers
     [Route("[controller]")]
     public class EWSApiSchedulerController : ControllerBase
     {
-        private readonly IEWSActing _EWSActing;
+        private readonly IEWSActing _EWSActing = new EWSs();
+        
         [HttpGet("GetAppos")]
         public JsonResult GetAppos(string startD)
         {
