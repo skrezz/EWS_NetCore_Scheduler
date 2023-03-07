@@ -16,5 +16,6 @@ namespace EWS_NetCore_Scheduler.Interfaces
         Appointment EWSAppoBind(ExchangeService service, string id, PropertySet PSet);
         void EWSAppoUpdate(Appointment appo, ConflictResolutionMode conflictResolutionMode, SendInvitationsOrCancellationsMode mode);
         Appointment EWSBindToRecurringMaster(ExchangeService service, string id, PropertySet props);
+        FolderId[] GetCals();
     }
 }

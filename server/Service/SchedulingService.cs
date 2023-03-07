@@ -17,6 +17,7 @@ namespace EWS_NetCore_Scheduler.Service
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
         string DelAppo(string id);
+        FolderId[] GetCals();
     }
     public class SchedulingService: ISchedulingService
     {
@@ -26,8 +27,7 @@ namespace EWS_NetCore_Scheduler.Service
             _EWSActing = EWS;
         }
         public string DelAppo(string id)
-        {
-            //IEWSActing EWS = new EWSs();
+        {            
             ExchangeService service = _EWSActing.CrEwsService();
             Appointment delAppo = _EWSActing.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
             _EWSActing.EWSDelAppo(delAppo);
@@ -69,6 +69,13 @@ namespace EWS_NetCore_Scheduler.Service
                 i++;
             }
             return new JsonResult(ApposArray);
+        }
+
+        public FolderId[] GetCals()
+        {
+            IEWSActing EWS = new EWSs();
+
+            return EWS.GetCals();
         }
 
         public string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
