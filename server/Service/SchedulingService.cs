@@ -17,7 +17,7 @@ namespace EWS_NetCore_Scheduler.Service
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
         string DelAppo(string id);
-        FolderId[] GetCals();
+        Cal[] GetCals();
     }
     public class SchedulingService: ISchedulingService
     {
@@ -34,17 +34,13 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-        public JsonResult GetAppos(string startD)
-        {
-            
-            DateTime startDate = DateTime.Parse(startD);
-            DateTime endDate = startDate;
-           
+            public JsonResult GetAppos(string CalendarId)
+        {       
+          
             IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service);
-
+            Appointment[] appointments = EWS.FindAppointments(service, CalendarId);
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
@@ -71,7 +67,7 @@ namespace EWS_NetCore_Scheduler.Service
             return new JsonResult(ApposArray);
         }
 
-        public FolderId[] GetCals()
+        public Cal[] GetCals()
         {
             IEWSActing EWS = new EWSs();
 
@@ -221,7 +217,8 @@ namespace EWS_NetCore_Scheduler.Service
             return "ok";
         }
     }
-    public class AppoSchemas
+
+        public class AppoSchemas
     {
         public static PropertySet AppoPropsSet(int TemplateNumber) 
         { 

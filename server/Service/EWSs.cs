@@ -2,6 +2,7 @@
 using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -29,14 +30,14 @@ namespace EWS_NetCore_Scheduler.Service
 
             return service;
         }
-        public Appointment[] FindAppointments(ExchangeService service)
+        public Appointment[] FindAppointments(ExchangeService service, string CalendarId)
         {
             IEWSActing EWS = new EWSs();
-            CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());          
-            ItemView iView = new ItemView(20);
+            //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
+            ItemView iView = new ItemView(200);
             // Limit the properties returned to the appointment's subject, start time, and end time.
             iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-            FindItemsResults<Item> appointments = service.FindItems(WellKnownFolderName.Calendar, iView);
+            FindItemsResults<Item> appointments = service.FindItems(CalendarId, iView);
             // Retrieve a collection of appointments by using the calendar view.
             Appointment[] apps = new Appointment[appointments.Items.Count];
             int i = 0;
@@ -72,21 +73,29 @@ namespace EWS_NetCore_Scheduler.Service
             return Appointment.BindToRecurringMaster(service, id, props);
         }
 
-        public FolderId[] GetCals()
+        public Cal[] GetCals()
         {
+            
             IEWSActing EWS = new EWSs();
             ExchangeService service = CrEwsService();
-            FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.PublicFoldersRoot, new FolderView(1000));            
-            Folder DefaultCalendar = Folder.Bind(service, WellKnownFolderName.Calendar, new PropertySet(FolderSchema.DisplayName,FolderSchema.TotalCount));
-            FolderId[] CalendarsIds = new FolderId[ffr.Folders.Count+1];
-            for(int i=0;i< CalendarsIds.Length;i++)
+            FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.Calendar,new FolderView(1000));
+            Cal[] Calendars = new Cal[ffr.Folders.Count + 1];
+            for (int i=1;i< Calendars.Length;i++)
             {
-                if (i > 0)
-                    CalendarsIds[i] = ffr.Folders[i - 1].Id;
-                else
-                    CalendarsIds[0] = DefaultCalendar.Id;
+                Calendars[i] = new Cal
+                {
+                    title = ffr.Folders[i-1].DisplayName,
+                    CalId = ffr.Folders[i-1].Id
+                };                    
             }
-            return CalendarsIds;
+            CalendarFolder DefaultCal = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet(FolderSchema.DisplayName));
+            Calendars[0] = new Cal
+            {
+                title = DefaultCal.DisplayName,
+                CalId = DefaultCal.Id
+            };
+
+            return Calendars;
         }
     }
 }
