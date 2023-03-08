@@ -32,7 +32,7 @@ namespace EWS_NetCore_Scheduler.Service
         public Appointment[] FindAppointments(ExchangeService service)
         {
             IEWSActing EWS = new EWSs();
-            CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
+            CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());          
             ItemView iView = new ItemView(20);
             // Limit the properties returned to the appointment's subject, start time, and end time.
             iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
@@ -70,6 +70,23 @@ namespace EWS_NetCore_Scheduler.Service
         {
             Appointment test= Appointment.BindToRecurringMaster(service, id, props);
             return Appointment.BindToRecurringMaster(service, id, props);
+        }
+
+        public FolderId[] GetCals()
+        {
+            IEWSActing EWS = new EWSs();
+            ExchangeService service = CrEwsService();
+            FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.PublicFoldersRoot, new FolderView(1000));            
+            Folder DefaultCalendar = Folder.Bind(service, WellKnownFolderName.Calendar, new PropertySet(FolderSchema.DisplayName,FolderSchema.TotalCount));
+            FolderId[] CalendarsIds = new FolderId[ffr.Folders.Count+1];
+            for(int i=0;i< CalendarsIds.Length;i++)
+            {
+                if (i > 0)
+                    CalendarsIds[i] = ffr.Folders[i - 1].Id;
+                else
+                    CalendarsIds[0] = DefaultCalendar.Id;
+            }
+            return CalendarsIds;
         }
     }
 }

@@ -3,6 +3,7 @@ using EWS_NetCore_Scheduler.Models;
 using EWS_NetCore_Scheduler.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -31,6 +32,13 @@ namespace EWS_NetCore_Scheduler.Controllers
         {
             ISchedulingService appo= new SchedulingService(_EWSActing);            
             return appo.DelAppo(id);
+        }
+
+        [HttpGet("GetCalendars")]
+        public FolderId[] GetCalendars()
+        {          
+            ISchedulingService Cals = new SchedulingService(_EWSActing);
+            return Cals.GetCals();
         }
 
 
