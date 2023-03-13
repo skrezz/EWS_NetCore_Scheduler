@@ -25,17 +25,10 @@ export function DevScheduler() {
   const { isLoading, error, data, isFetching } = useQuery<
     AppointmentModel[],
     Error
-  >/*("appointmentData", () =>
+  >("appointmentData", () =>
     axios
       .get(
         `http://localhost:5152/EWSApiScheduler?startD=${currentDate.toISODate()}`
-      )
-      .then((res) => res.data)
-  );*/
-  ("appointmentData", () =>
-    axios
-      .get(
-        `http://localhost:5152/EWSApiScheduler/GetAppos?CalendarId=AQMkADAwATNiZmYAZC0zNThjLWYyNzItMDACLTAwCgAuAAADVsPWUeK5pEqLP2nAwws2hwEAru%2F256NrUUC1fGm0RnQ7hQAAAgENAAAA&startDate=${currentDate.toISODate()}`
       )
       .then((res) => res.data)
   );
