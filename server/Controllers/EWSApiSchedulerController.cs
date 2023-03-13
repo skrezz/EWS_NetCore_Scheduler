@@ -16,10 +16,10 @@ namespace EWS_NetCore_Scheduler.Controllers
         private readonly IEWSActing _EWSActing = new EWSs();
         
         [HttpGet("GetAppos")]
-        public JsonResult GetAppos(string CalendarId)
+        public JsonResult GetAppos(string CalendarId, string startDate)
         {
             ISchedulingService ApposInfo = new SchedulingService(_EWSActing);            
-            return ApposInfo.GetAppos(CalendarId);
+            return ApposInfo.GetAppos(CalendarId, startDate);
         }
         [HttpPost("PostAppos")]
         public string PostAppos(JsonElement JSPullAppo)
