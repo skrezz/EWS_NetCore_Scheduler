@@ -12,7 +12,7 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        JsonResult GetAppos(string CalendarId, string startDate);
+        JsonResult GetAppos(string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
@@ -34,13 +34,13 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-            public JsonResult GetAppos(string CalendarId, string startDate)
+            public JsonResult GetAppos(string CalendarId)
         {       
           
             IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service, CalendarId, startDate);
+            Appointment[] appointments = EWS.FindAppointments(service, CalendarId);
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
