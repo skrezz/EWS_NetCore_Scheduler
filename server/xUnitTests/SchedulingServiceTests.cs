@@ -44,9 +44,9 @@ namespace xUnitTests
             _IEWSActingMock.Setup(x => x.FindAppointments(_IEWSActingMock.Object.CrEwsService())).Returns(findItem);*/
                 
             //Act
-            /*var res = _shedServTest.GetAppos(startDate.ToString());
+            var res = _shedServTest.GetAppos(new Guid().ToString(),startDate.ToString());
             //assert
-            Assert.Equal(Jsonappo.Value, res.Value);*/
+            Assert.Equal(Jsonappo.Value, res.Value);
         }
     }
 }
