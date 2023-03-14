@@ -6,6 +6,7 @@ using Microsoft.Exchange.WebServices.Data;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
 using EWS_NetCore_Scheduler.Models;
+using Xunit;
 
 namespace xUnitTests
 {
