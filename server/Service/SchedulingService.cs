@@ -7,6 +7,8 @@ using Microsoft.Exchange.WebServices.Data;
 using EWS_NetCore_Scheduler.Interfaces;
 using System.Text.Json.Nodes;
 using System.Security.Cryptography.Xml;
+using System.Globalization;
+using System.Runtime.Intrinsics.X86;
 
 namespace EWS_NetCore_Scheduler.Service
 {
@@ -49,21 +51,28 @@ namespace EWS_NetCore_Scheduler.Service
                 string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
                 Appo appo = new Appo();
                 appo.title = a.Subject.ToString();
-                appo.startDate = a.Start.ToString();
-                appo.endDate = a.End.ToString();
+                appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
                 if (a.IsAllDayEvent != null)
                     appo.allDay = a.IsAllDayEvent;
                 if (a.Id != null)
                     appo.id = a.Id.ToString();
+                else
+                    appo.id = "";
                 if (RecStrings[0] != null)
                 {
                     appo.rRule = "RRULE:" + RecStrings[1];
                     appo.DTSTART = "DTSTART;" + RecStrings[0];
                 }
+                else
+                {
+                    appo.rRule = "";
+                    appo.DTSTART = "";
+                }
 
                 ApposArray[i] = appo;
                 i++;
-            }
+            }           
             return new JsonResult(ApposArray);
         }
 

@@ -18,7 +18,8 @@ namespace EWS_NetCore_Scheduler.Controllers
         [HttpGet("GetAppos")]
         public JsonResult GetAppos(string CalendarId, string startD)
         {
-            ISchedulingService ApposInfo = new SchedulingService(_EWSActing);            
+            ISchedulingService ApposInfo = new SchedulingService(_EWSActing);
+            JsonResult test = ApposInfo.GetAppos(CalendarId, startD);
             return ApposInfo.GetAppos(CalendarId, startD);
         }
         [HttpPost("PostAppos")]
