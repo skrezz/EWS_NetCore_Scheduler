@@ -7,33 +7,43 @@ using Microsoft.Exchange.WebServices.Data;
 using EWS_NetCore_Scheduler.Interfaces;
 using System.Text.Json.Nodes;
 using System.Security.Cryptography.Xml;
+using System.Globalization;
+using System.Runtime.Intrinsics.X86;
 
 namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        Appo[] GetApposLogic(ExchangeService service, string startD);
+        JsonResult GetAppos(string CalendarId, string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
-        public Appointment[] PostAppoLogic(ExchangeService service, JsonElement JSPullAppo);
+        string PostAppo(JsonElement JSPostAppo);
+        string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
+        string DelAppo(string id);
+        Cal[] GetCals();
     }
     public class SchedulingService: ISchedulingService
     {
-        public Appo[] GetApposLogic(ExchangeService service, string startD)
+        private readonly IEWSActing _EWSActing;
+        public SchedulingService(IEWSActing EWS)
         {
-            DateTime startDate = DateTime.Parse(startD);
-            DateTime endDate = startDate.AddDays(1);
-            //const int NUM_APPTS = 5;
-            // Initialize the calendar folder object with only the folder ID. 
-            CalendarFolder calendar = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet());
+            _EWSActing = EWS;
+        }
+        public string DelAppo(string id)
+        {            
+            ExchangeService service = _EWSActing.CrEwsService();
+            Appointment delAppo = _EWSActing.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
+            _EWSActing.EWSDelAppo(delAppo);
+            return "deleted";
+        }
+
+        public JsonResult GetAppos(string CalendarId, string startDate)
+        {
+
+            IEWSActing EWS = _EWSActing;
+            ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            ItemView iView = new ItemView(20);
-            // Limit the properties returned to the appointment's subject, start time, and end time.
-            iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-
-            // Retrieve a collection of appointments by using the calendar view.
-            FindItemsResults<Item> appointments = service.FindItems(WellKnownFolderName.Calendar, iView);
-
-            Appo[] ApposArray = new Appo[appointments.Items.Count];
+            Appointment[] appointments = EWS.FindAppointments(service, CalendarId, startDate);
+            Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
             foreach (Appointment a in appointments)
@@ -41,27 +51,41 @@ namespace EWS_NetCore_Scheduler.Service
                 string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
                 Appo appo = new Appo();
                 appo.title = a.Subject.ToString();
-                appo.startDate = a.Start.ToString();
-                appo.endDate = a.End.ToString();
+                appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
                 if (a.IsAllDayEvent != null)
                     appo.allDay = a.IsAllDayEvent;
                 if (a.Id != null)
                     appo.id = a.Id.ToString();
+                else
+                    appo.id = "";
                 if (RecStrings[0] != null)
                 {
                     appo.rRule = "RRULE:" + RecStrings[1];
                     appo.DTSTART = "DTSTART;" + RecStrings[0];
                 }
-                /*if (a.ex != null)
-                    appo.exDate = a.Recurrence.ToString();*/
+                else
+                {
+                    appo.rRule = "";
+                    appo.DTSTART = "";
+                }
+
                 ApposArray[i] = appo;
                 i++;
-            }
-            return ApposArray;
+            }           
+            return new JsonResult(ApposArray);
+        }
+
+        public Cal[] GetCals()
+        {
+            IEWSActing EWS = new EWSs();
+
+            return EWS.GetCals();
         }
 
         public string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
         {
+            IEWSActing EWS = new EWSs();
             //Appointment calendarItem = Appointment.Bind(service, itemId, new PropertySet(AppointmentSchema.AppointmentType));
             string[] rrule = new string[2];
             Appointment recurrMaster = new Appointment(service);
@@ -77,7 +101,7 @@ namespace EWS_NetCore_Scheduler.Service
             {
                 // Calendar item is a recurring master so use Appointment.Bind
                 case AppointmentType.RecurringMaster:
-                    recurrMaster = Appointment.Bind(service, calendarItem.Id, props);
+                    recurrMaster = EWS.EWSAppoBind(service, calendarItem.Id.ToString(), props);
                     break;
                 // The calendar item is a single instance meeting, so there are no instances to modify or delete.
                 case AppointmentType.Single:
@@ -85,11 +109,11 @@ namespace EWS_NetCore_Scheduler.Service
                     return rrule;
                 // The calendar item is an occurrence in the series, so use BindToRecurringMaster.
                 case AppointmentType.Occurrence:
-                    recurrMaster = Appointment.BindToRecurringMaster(service, calendarItem.Id, props);
+                    recurrMaster = EWS.EWSBindToRecurringMaster(service, calendarItem.Id.ToString(), props);
                     break;
                 // The calendar item is an exception to the series, so use BindToRecurringMaster.                
                 case AppointmentType.Exception:
-                    recurrMaster = Appointment.BindToRecurringMaster(service, calendarItem.Id, props);
+                    recurrMaster = EWS.EWSBindToRecurringMaster(service, calendarItem.Id.ToString(), props);
                     break;
             }
             Recurrence RecFin = recurrMaster.Recurrence;
@@ -119,10 +143,10 @@ namespace EWS_NetCore_Scheduler.Service
             return rrule;
         }
 
-        public Appointment[] PostAppoLogic(ExchangeService service, JsonElement JSPullAppo)
+        public string PostAppo(JsonElement JSPostAppo)
         {
-            
-            var items = JsonNode.Parse(JSPullAppo.ToString());
+            //Deserialise json to array of JsonObject[]
+            var items = JsonNode.Parse(JSPostAppo.ToString());
             JsonObject[] JsObjs =new JsonObject[1];
             Appointment[] newAppos = new Appointment[1];
             if (items.GetType().Name=="JsonArray")
@@ -141,7 +165,9 @@ namespace EWS_NetCore_Scheduler.Service
                 JsObjs[0] = items.AsObject();
             }
             int j = 0;
-            
+            //creating or editing appointments
+            IEWSActing EWS = new EWSs();
+            ExchangeService service = EWS.CrEwsService();
             foreach(JsonObject jso in JsObjs)
             {
                 if (jso["id"] == null)
@@ -156,7 +182,7 @@ namespace EWS_NetCore_Scheduler.Service
                 {
                     try
                     {
-                        Appointment editAppo = Appointment.Bind(service, jso["id"].ToString(), AppoSchemas.AppoPropsSet(1));
+                        Appointment editAppo = EWS.EWSAppoBind(service, jso["id"].ToString(), AppoSchemas.AppoPropsSet(1));
                         if (jso["title"] != null) editAppo.Subject = jso["title"].ToString();
                         if (jso["startDate"] != null) editAppo.Start = DateTime.Parse(jso["startDate"].ToString());
                         if (jso["endDate"] != null) editAppo.End = DateTime.Parse(jso["endDate"].ToString());
@@ -167,7 +193,7 @@ namespace EWS_NetCore_Scheduler.Service
                         SendInvitationsOrCancellationsMode mode = editAppo.IsMeeting ?
                         SendInvitationsOrCancellationsMode.SendToAllAndSaveCopy : SendInvitationsOrCancellationsMode.SendToNone;
                         // Send the update request to the Exchange server.
-                        editAppo.Update(ConflictResolutionMode.AlwaysOverwrite, mode);
+                        EWS.EWSAppoUpdate(editAppo, ConflictResolutionMode.AlwaysOverwrite, mode);
                         newAppos[j] = editAppo;
                         
                     }
@@ -176,16 +202,32 @@ namespace EWS_NetCore_Scheduler.Service
                     }
                 }
                 j++;
-            }  
-                /*newAppo.Subject = "Test3";
-            newAppo.Start = DateTime.Now;*/
-            //newAppo.Save(SendInvitationsMode.SendToNone);
+            }              
             
-            
-            return newAppos;            
+            return PostOrEditAppo(service, newAppos);            
+        }
+
+        public string PostOrEditAppo(ExchangeService service,Appointment[] newAppos)
+        {
+                    
+            foreach (Appointment newAppo in newAppos)
+            {
+                if (newAppo != null)
+                    try
+                    {
+                        newAppo.Save(SendInvitationsMode.SendToNone);
+                        Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
+                    }
+                    catch (System.InvalidOperationException ex)
+                    {
+                        //need a counter and output about results
+                    }
+            }
+            return "ok";
         }
     }
-    public class AppoSchemas
+
+        public class AppoSchemas
     {
         public static PropertySet AppoPropsSet(int TemplateNumber) 
         { 

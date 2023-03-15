@@ -2,6 +2,7 @@
 using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -26,47 +27,79 @@ namespace EWS_NetCore_Scheduler.Service
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
+
             return service;
         }
-
-        public JsonResult GetApposInfo(string startD)
+        public Appointment[] FindAppointments(ExchangeService service, string CalendarId, string startDate)
         {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            ISchedulingService GetAppoServ = new SchedulingService();
-            Appo[] ApposArray = GetAppoServ.GetApposLogic(service, startD);
-            return new JsonResult(ApposArray);
+            IEWSActing EWS = new EWSs();
+            //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
+            ItemView iView = new ItemView(200);
+            SearchFilter searchFilter = new SearchFilter.IsGreaterThanOrEqualTo(AppointmentSchema.Start, DateTime.Parse(startDate));
 
-        }
-        
-
-        public string PostOrEditAppo(ExchangeService service, JsonElement JSPullAppo)
-        {
-            ISchedulingService ssPost = new SchedulingService();
-            Appointment[] newAppos = ssPost.PostAppoLogic(service, JSPullAppo);
-            foreach (Appointment newAppo in newAppos)
+            //View.date
+            // Limit the properties returned to the appointment's subject, start time, and end time.
+            iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
+            FindItemsResults<Item> appointments = service.FindItems(CalendarId, searchFilter, iView);
+            //FindItemsResults<Item> appointments = service.FindItems(CalendarId, iView);
+            // Retrieve a collection of appointments by using the calendar view.
+            Appointment[] apps = new Appointment[appointments.Items.Count];
+            int i = 0;
+            foreach (Appointment a in appointments)
             {
-                if(newAppo != null)
-                try
-                {
-                    newAppo.Save(SendInvitationsMode.SendToNone);
-                    Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
-                }
-                catch (System.InvalidOperationException ex)
-                {
-
-                }
+                apps[i] = a;
+                i++;
             }
-            return "ok";
+            return apps;
         }
 
-        public string DelAppo(string id)
+
+        public string EWSDelAppo(Appointment appointment)
         {
-            IEWSActing EWSAct = new EWSs();
-            ExchangeService service = EWSAct.CrEwsService();
-            Appointment delAppo = Appointment.Bind(service,id,new PropertySet(BasePropertySet.IdOnly));
-            delAppo.Delete(DeleteMode.SoftDelete);
+
+            appointment.Delete(DeleteMode.SoftDelete);
             return "deleted_";
+        }
+
+        public Appointment EWSAppoBind(ExchangeService service, string id, PropertySet PSet)
+        {
+            return Appointment.Bind(service, id, PSet);
+        }
+
+        public void EWSAppoUpdate(Appointment appo,ConflictResolutionMode conflictResolutionMode, SendInvitationsOrCancellationsMode mode)
+        {
+            appo.Update(conflictResolutionMode, mode);
+        }
+
+        public Appointment EWSBindToRecurringMaster(ExchangeService service, string id, PropertySet props)
+        {
+            Appointment test= Appointment.BindToRecurringMaster(service, id, props);
+            return Appointment.BindToRecurringMaster(service, id, props);
+        }
+
+        public Cal[] GetCals()
+        {
+            
+            IEWSActing EWS = new EWSs();
+            ExchangeService service = CrEwsService();
+            FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.Calendar,new FolderView(1000));
+            Cal[] Calendars = new Cal[ffr.Folders.Count + 1];
+            for (int i=1;i< Calendars.Length;i++)
+            {
+                Calendars[i] = new Cal
+                {
+                    title = ffr.Folders[i-1].DisplayName,
+                    CalId = ffr.Folders[i-1].Id
+                };                    
+            }
+            CalendarFolder DefaultCal = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet(FolderSchema.DisplayName));
+            Calendars[0] = new Cal
+            {
+                title = DefaultCal.DisplayName,
+                CalId = DefaultCal.Id
+            };
+
+            return Calendars;
         }
     }
 }
