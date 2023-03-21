@@ -7,17 +7,19 @@ using Microsoft.Exchange.WebServices.Data;
 using EWS_NetCore_Scheduler.Interfaces;
 using System.Text.Json.Nodes;
 using System.Security.Cryptography.Xml;
+using System.Globalization;
+using System.Runtime.Intrinsics.X86;
 
 namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        JsonResult GetAppos(string startD);
+        JsonResult GetAppos(string CalendarId, string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
         string DelAppo(string id);
-        FolderId[] GetCals();
+        Cal[] GetCals();
     }
     public class SchedulingService: ISchedulingService
     {
@@ -34,17 +36,13 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-        public JsonResult GetAppos(string startD)
+        public JsonResult GetAppos(string CalendarId, string startDate)
         {
-            
-            DateTime startDate = DateTime.Parse(startD);
-            DateTime endDate = startDate;
-           
+
             IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service);
-
+            Appointment[] appointments = EWS.FindAppointments(service, CalendarId, startDate);
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
@@ -53,25 +51,32 @@ namespace EWS_NetCore_Scheduler.Service
                 string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
                 Appo appo = new Appo();
                 appo.title = a.Subject.ToString();
-                appo.startDate = a.Start.ToString();
-                appo.endDate = a.End.ToString();
+                appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
                 if (a.IsAllDayEvent != null)
                     appo.allDay = a.IsAllDayEvent;
                 if (a.Id != null)
                     appo.id = a.Id.ToString();
+                else
+                    appo.id = "";
                 if (RecStrings[0] != null)
                 {
                     appo.rRule = "RRULE:" + RecStrings[1];
                     appo.DTSTART = "DTSTART;" + RecStrings[0];
                 }
+                else
+                {
+                    appo.rRule = "";
+                    appo.DTSTART = "";
+                }
 
                 ApposArray[i] = appo;
                 i++;
-            }
+            }           
             return new JsonResult(ApposArray);
         }
 
-        public FolderId[] GetCals()
+        public Cal[] GetCals()
         {
             IEWSActing EWS = new EWSs();
 
@@ -221,7 +226,8 @@ namespace EWS_NetCore_Scheduler.Service
             return "ok";
         }
     }
-    public class AppoSchemas
+
+        public class AppoSchemas
     {
         public static PropertySet AppoPropsSet(int TemplateNumber) 
         { 

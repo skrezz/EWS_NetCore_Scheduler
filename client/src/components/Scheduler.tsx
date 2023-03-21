@@ -17,37 +17,34 @@ import {
 } from "@devexpress/dx-react-scheduler-material-ui";
 
 export function DevScheduler() {
-
-  
- 
   const [currentDate, setCurrentDate] = React.useState(new Date());
-
   const { isLoading, error, data, isFetching } = useQuery<
     AppointmentModel[],
     Error
-  >("appointmentData", () =>
+  >
+  ("appointmentData", () =>
     axios
       .get(
-        `http://localhost:5152/EWSApiScheduler?startD=${currentDate.toISODate()}`
-      )
+        `http://localhost:5152/EWSApiScheduler/GetAppos?CalendarId=AQMkADAwATNiZmYAZC0zNThjLWYyNzItMDACLTAwCgAuAAADVsPWUeK5pEqLP2nAwws2hwEAru%2F256NrUUC1fGm0RnQ7hQAAAgENAAAA&startD=${currentDate.toISODate()}`      
+       )
       .then((res) => res.data)
   );
-
+  
   if (isLoading) return <div>Loading...</div>;
 
   if (error) return <div>An error has occurred: + {error.message}</div>;
 
   return (
-    <Paper>
+    <Paper>      
       <Scheduler data={data}>
         <ViewState
-          currentDate={currentDate}
-          onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
+        currentDate={currentDate}
+        onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
         />
         <DayView startDayHour={9} endDayHour={19} />
         <Toolbar />
         <DateNavigator />
-        <TodayButton />
+        <TodayButton />        
         <Appointments />
       </Scheduler>
     </Paper>

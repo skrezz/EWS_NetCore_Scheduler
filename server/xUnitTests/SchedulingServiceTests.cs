@@ -6,6 +6,7 @@ using Microsoft.Exchange.WebServices.Data;
 using System.Net.WebSockets;
 using Microsoft.AspNetCore.Mvc;
 using EWS_NetCore_Scheduler.Models;
+using Xunit;
 
 namespace xUnitTests
 {
@@ -43,7 +44,7 @@ namespace xUnitTests
             _IEWSActingMock.Setup(x => x.FindAppointments(_IEWSActingMock.Object.CrEwsService())).Returns(findItem);*/
                 
             //Act
-            var res = _shedServTest.GetAppos(startDate.ToString());
+            var res = _shedServTest.GetAppos(new Guid().ToString(),startDate.ToString());
             //assert
             Assert.Equal(Jsonappo.Value, res.Value);
         }

@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EWS_NetCore_Scheduler", "EWS_NetCore_Scheduler.csproj", "{EDC2958E-A613-4907-B82E-6CD3BA3EB884}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xUnitTests", "..\xUnitTests\xUnitTests.csproj", "{8B95F961-71C7-41FB-A0EF-CD49B7C714D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "xUnitTests", "xUnitTests\xUnitTests.csproj", "{B6963BB3-0D2D-4962-BA88-F46FE5AE0564}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{EDC2958E-A613-4907-B82E-6CD3BA3EB884}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EDC2958E-A613-4907-B82E-6CD3BA3EB884}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDC2958E-A613-4907-B82E-6CD3BA3EB884}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8B95F961-71C7-41FB-A0EF-CD49B7C714D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B95F961-71C7-41FB-A0EF-CD49B7C714D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B95F961-71C7-41FB-A0EF-CD49B7C714D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B95F961-71C7-41FB-A0EF-CD49B7C714D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6963BB3-0D2D-4962-BA88-F46FE5AE0564}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6963BB3-0D2D-4962-BA88-F46FE5AE0564}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6963BB3-0D2D-4962-BA88-F46FE5AE0564}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6963BB3-0D2D-4962-BA88-F46FE5AE0564}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
