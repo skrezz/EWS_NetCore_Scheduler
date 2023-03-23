@@ -46,34 +46,44 @@ namespace EWS_NetCore_Scheduler.Service
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
-            foreach (Appointment a in appointments)
+            if (appointments.Length > 0)
             {
-                string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
-                Appo appo = new Appo();
-                appo.title = a.Subject.ToString();
-                appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
-                appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
-                if (a.IsAllDayEvent != null)
-                    appo.allDay = a.IsAllDayEvent;
-                if (a.Id != null)
-                    appo.id = a.Id.ToString();
-                else
-                    appo.id = "";
-                if (RecStrings[0] != null)
+                foreach (Appointment a in appointments)
                 {
-                    appo.rRule = "RRULE:" + RecStrings[1];
-                    appo.DTSTART = "DTSTART;" + RecStrings[0];
-                }
-                else
-                {
-                    appo.rRule = "";
-                    appo.DTSTART = "";
-                }
+                    string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
+                    Appo appo = new Appo();
+                    appo.title = a.Subject.ToString();
+                    appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    if (a.IsAllDayEvent != null)
+                        appo.allDay = a.IsAllDayEvent;
+                    if (a.Id != null)
+                        appo.id = a.Id.ToString();
+                    else
+                        appo.id = "";
+                    if (RecStrings[0] != null)
+                    {
+                        appo.rRule = "RRULE:" + RecStrings[1];
+                        appo.DTSTART = "DTSTART;" + RecStrings[0];
+                    }
+                    else
+                    {
+                        appo.rRule = "";
+                        appo.DTSTART = "";
+                    }
 
-                ApposArray[i] = appo;
-                i++;
-            }           
-            return new JsonResult(ApposArray);
+                    ApposArray[i] = appo;
+                    i++;
+                }
+                return new JsonResult(ApposArray);
+            }
+            else
+            {
+                ApposArray = new Appo[1];
+                ApposArray[0] = new Appo();
+                ApposArray[0].startDate = "";
+                return new JsonResult(ApposArray);
+            }
         }
 
         public Cal[] GetCals()
@@ -175,6 +185,7 @@ namespace EWS_NetCore_Scheduler.Service
                     Appointment newAppo = new Appointment(service);
                     newAppo.Subject = jso["title"].ToString();
                     newAppo.Start = DateTime.Parse(jso["startDate"].ToString());
+                    newAppo.End = DateTime.Parse(jso["endDate"].ToString());
                     newAppos[j] = newAppo;
                     
                 }

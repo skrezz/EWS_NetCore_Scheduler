@@ -3,6 +3,7 @@ DotEnv.Load(@"..\Server\data\Creds.txt");
 
 var  MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -10,7 +11,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy  =>
                       {
-                          policy.WithOrigins("*");
+                          policy.WithOrigins("*").AllowAnyHeader();                         
                       });
 });
 
