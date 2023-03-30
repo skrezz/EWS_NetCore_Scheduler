@@ -14,7 +14,7 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        JsonResult GetAppos(string CalendarId, string startD);
+        JsonResult GetAppos(string[] CalendarIds, string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
@@ -36,13 +36,40 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-        public JsonResult GetAppos(string CalendarId, string startDate)
+        public JsonResult GetAppos(string[] CalendarIds, string startDate)
         {
+            int calCounter = 0;
+            
+            foreach(string calendarId in CalendarIds)
+            {
+                if (calendarId != "")
+                    calCounter++;
+            }
+            if (calCounter == 0)
+            {
+                Appo[] ApposFake = new Appo[] {
+                           new Appo
+                           {
+                               startDate=""
+                           }
+                        };
+                return new JsonResult(ApposFake);
 
-            IEWSActing EWS = _EWSActing;
+            }
+            string[] trueCals = new string[calCounter];
+            int jk = 0;
+            for(int j=0;j< CalendarIds.Length;j++)
+            {
+                if (CalendarIds[j] != "")
+                {
+                    trueCals[jk] = CalendarIds[j];
+                    jk++;
+                }
+            }
+              IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service, CalendarId, startDate);
+            Appointment[] appointments = EWS.FindAppointments(service, trueCals, startDate);
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;

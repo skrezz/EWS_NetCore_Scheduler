@@ -22,51 +22,68 @@ import {
   TodayButton,
 } from "@devexpress/dx-react-scheduler-material-ui";
 
-import {useAppos,usePostAppo} from "./schedulerApi";
+import {useCalendars,useGetAppos,usePostAppo} from "./schedulerApi";
+import { CalModel } from "../Support/Models";
+import {CheckBoxRender} from "./CheckBoxes"
 
 export function DevScheduler() { 
-  console.log('start')
-  const [currentDate, setCurrentDate] = React.useState(new Date()); 
-  const [dataFront, dataFrontChanges] = React.useState(Array<AppointmentModel>);
-
+  //console.log('start')
+  const [currentDate, setCurrentDate] = React.useState(new Date());
+  //Post Appos 
   const { mutate}=usePostAppo() 
 
-    function commitChanges(changes:ChangeSet){  
-      if (changes.added) {
-         mutate({ startDate: currentDate, ...changes.added})
-      }
+  function commitChanges(changes:ChangeSet){  
+    if (changes.added) {
+       mutate({ startDate: currentDate, ...changes.added})
     }
-  const { isLoading, error, data, isFetching } = useAppos(currentDate)
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>An error has occurred: + {error.message}</div>;
+  }
 
+  const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
   
-        /*const { mutate, isLoading, error } = useMutation<AppointmentModel[],Error>(
-          (data)=>axios.post('https://localhost:7151/EWSApiScheduler/PostAppos', 
-          {
-          startDate: currentDate,
-          title: 'FrontTest10'   
-          },
-            {headers: 
-              {
-                'accept': 'text/plain',
-                'Content-Type': 'application/json'                
-              }
-            }
-          ),
-          {
-            onSuccess: (data:AppointmentModel[])=>{useAppos(currentDate)}
-          ,
-          onError: (error) => {console.log(error);}
-          }
-          )  
-        //dataFrontChanges([...dataFront, { startDate: currentDate, ...changes.added }])*/
+  let calTitles:string[]=['','']
+  if(!CalIsLoading)
+  {
+    calTitles=CalData!.map((cal:CalModel)=>{
+      return cal.title
+    }) 
+  }
+  //CheckBoxes Controller
+  const [checkBoxState, setCheckBoxesState] = React.useState(new Array(calTitles!.length).fill(true))
+  const handleOnChange = (position:number) => {
+  const updatedCheckedState = checkBoxState.map((item, index) =>
+      index === position ? !item : item
+      );
+        setCheckBoxesState(updatedCheckedState);          
+      }
+   //Get Appos
+    let calIds:string[]=['','']
     
-    
+    if(!CalIsLoading)
+    {
+    calIds=CalData!.map((cal:CalModel,index)=>{
+      if(checkBoxState[index])
+      {
+      return cal.calId
+      }
+      return ''
+    })
+    //console.log(calIds) 
+    }    
+   
+    const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
 
+    if (isLoading) return <div>Loading...</div>;
+    if (CalIsLoading) return <div>Loading...</div>;
+    if (error) return <div>An error has occurred: + {error.message}</div>; 
+
+    
   return (
+    <div>
+       <div className="CheckBoxesPanel">
+        {CheckBoxRender(calTitles,checkBoxState,handleOnChange)}
+        </div>
     <Paper>      
-      <Scheduler data={[...data!,...dataFront]}>
+      <Scheduler data={data}>
         <ViewState
           currentDate={currentDate}
           onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}          
@@ -87,6 +104,7 @@ export function DevScheduler() {
           />
           <AppointmentForm />
       </Scheduler>
-    </Paper>
+    </Paper>  
+    </div>
   );
 }

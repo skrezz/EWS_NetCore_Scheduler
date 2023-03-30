@@ -34,8 +34,12 @@ namespace xUnitTests
         {
             //arrange
             var startDate = new DateTime();
-            var appo = new Appo[0];          
-            
+            var appo = new Appo[0];
+            string[] Ids = new string[]
+            {
+                new Guid().ToString(),
+                new Guid().ToString()
+            };
             var Jsonappo = new JsonResult(appo);
             /*FindItemsResults<Item> findItem =_IEWSActingMock.Object.FindAppointments(_IEWSActingMock.Object.CrEwsService());
 
@@ -44,7 +48,7 @@ namespace xUnitTests
             _IEWSActingMock.Setup(x => x.FindAppointments(_IEWSActingMock.Object.CrEwsService())).Returns(findItem);*/
                 
             //Act
-            var res = _shedServTest.GetAppos(new Guid().ToString(),startDate.ToString());
+            var res = _shedServTest.GetAppos(Ids, startDate.ToString());
             //assert
             Assert.Equal(Jsonappo.Value, res.Value);
         }

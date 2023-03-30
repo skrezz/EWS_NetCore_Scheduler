@@ -30,7 +30,7 @@ namespace EWS_NetCore_Scheduler.Service
 
             return service;
         }
-        public Appointment[] FindAppointments(ExchangeService service, string CalendarId, string startDate)
+        public Appointment[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate)
         {
             IEWSActing EWS = new EWSs();
             //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
@@ -40,17 +40,27 @@ namespace EWS_NetCore_Scheduler.Service
             //View.date
             // Limit the properties returned to the appointment's subject, start time, and end time.
             iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-            FindItemsResults<Item> appointments = service.FindItems(CalendarId, searchFilter, iView);
-            //FindItemsResults<Item> appointments = service.FindItems(CalendarId, iView);
-            // Retrieve a collection of appointments by using the calendar view.
-            Appointment[] apps = new Appointment[appointments.Items.Count];
+            Appointment[] apps = new Appointment[100];
             int i = 0;
-            foreach (Appointment a in appointments)
+            foreach (string CalendarId in CalendarIds)
             {
-                apps[i] = a;
-                i++;
+                FindItemsResults<Item> appointments = service.FindItems(CalendarId, searchFilter, iView);
+                //FindItemsResults<Item> appointments = service.FindItems(CalendarId, iView);
+                // Retrieve a collection of appointments by using the calendar view. ];                
+                foreach (Appointment a in appointments)
+                {
+                    apps[i] = a;
+                    i++;
+                }
             }
-            return apps;
+            int j = 0;
+            Appointment[] appsFin= new Appointment[Array.IndexOf(apps, null)];
+            while (apps[j] != null)
+            {
+                appsFin[j] = apps[j];                
+                j++;
+            }            
+            return appsFin;
         }
 
 
@@ -89,14 +99,14 @@ namespace EWS_NetCore_Scheduler.Service
                 Calendars[i] = new Cal
                 {
                     title = ffr.Folders[i-1].DisplayName,
-                    CalId = ffr.Folders[i-1].Id
+                    CalId = ffr.Folders[i-1].Id.UniqueId
                 };                    
             }
             CalendarFolder DefaultCal = CalendarFolder.Bind(service, WellKnownFolderName.Calendar, new PropertySet(FolderSchema.DisplayName));
             Calendars[0] = new Cal
             {
                 title = DefaultCal.DisplayName,
-                CalId = DefaultCal.Id
+                CalId = DefaultCal.Id.UniqueId
             };
 
             return Calendars;
