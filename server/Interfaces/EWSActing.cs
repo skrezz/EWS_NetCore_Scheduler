@@ -13,7 +13,7 @@ namespace EWS_NetCore_Scheduler.Interfaces
         ExchangeService CrEwsService();
 
         string EWSDelAppo(Appointment appointment);
-        Appointment[] FindAppointments(ExchangeService service, string CalendarId, string startDate);
+        Appointment[] FindAppointments(ExchangeService service, string[] CalendarId, string startDate);
         Appointment EWSAppoBind(ExchangeService service, string id, PropertySet PSet);
         void EWSAppoUpdate(Appointment appo, ConflictResolutionMode conflictResolutionMode, SendInvitationsOrCancellationsMode mode);
         Appointment EWSBindToRecurringMaster(ExchangeService service, string id, PropertySet props);

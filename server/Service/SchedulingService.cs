@@ -14,7 +14,7 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        JsonResult GetAppos(string CalendarId, string startD);
+        JsonResult GetAppos(string[] CalendarIds, string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
@@ -36,44 +36,81 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-        public JsonResult GetAppos(string CalendarId, string startDate)
+        public JsonResult GetAppos(string[] CalendarIds, string startDate)
         {
+            int calCounter = 0;
+            
+            foreach(string calendarId in CalendarIds)
+            {
+                if (calendarId != "")
+                    calCounter++;
+            }
+            if (calCounter == 0)
+            {
+                Appo[] ApposFake = new Appo[] {
+                           new Appo
+                           {
+                               startDate=""
+                           }
+                        };
+                return new JsonResult(ApposFake);
 
-            IEWSActing EWS = _EWSActing;
+            }
+            string[] trueCals = new string[calCounter];
+            int jk = 0;
+            for(int j=0;j< CalendarIds.Length;j++)
+            {
+                if (CalendarIds[j] != "")
+                {
+                    trueCals[jk] = CalendarIds[j];
+                    jk++;
+                }
+            }
+              IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service, CalendarId, startDate);
+            Appointment[] appointments = EWS.FindAppointments(service, trueCals, startDate);
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
-            foreach (Appointment a in appointments)
+            if (appointments.Length > 0)
             {
-                string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
-                Appo appo = new Appo();
-                appo.title = a.Subject.ToString();
-                appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
-                appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
-                if (a.IsAllDayEvent != null)
-                    appo.allDay = a.IsAllDayEvent;
-                if (a.Id != null)
-                    appo.id = a.Id.ToString();
-                else
-                    appo.id = "";
-                if (RecStrings[0] != null)
+                foreach (Appointment a in appointments)
                 {
-                    appo.rRule = "RRULE:" + RecStrings[1];
-                    appo.DTSTART = "DTSTART;" + RecStrings[0];
-                }
-                else
-                {
-                    appo.rRule = "";
-                    appo.DTSTART = "";
-                }
+                    string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
+                    Appo appo = new Appo();
+                    appo.title = a.Subject.ToString();
+                    appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    if (a.IsAllDayEvent != null)
+                        appo.allDay = a.IsAllDayEvent;
+                    if (a.Id != null)
+                        appo.id = a.Id.ToString();
+                    else
+                        appo.id = "";
+                    if (RecStrings[0] != null)
+                    {
+                        appo.rRule = "RRULE:" + RecStrings[1];
+                        appo.DTSTART = "DTSTART;" + RecStrings[0];
+                    }
+                    else
+                    {
+                        appo.rRule = "";
+                        appo.DTSTART = "";
+                    }
 
-                ApposArray[i] = appo;
-                i++;
-            }           
-            return new JsonResult(ApposArray);
+                    ApposArray[i] = appo;
+                    i++;
+                }
+                return new JsonResult(ApposArray);
+            }
+            else
+            {
+                ApposArray = new Appo[1];
+                ApposArray[0] = new Appo();
+                ApposArray[0].startDate = "";
+                return new JsonResult(ApposArray);
+            }
         }
 
         public Cal[] GetCals()
@@ -175,6 +212,7 @@ namespace EWS_NetCore_Scheduler.Service
                     Appointment newAppo = new Appointment(service);
                     newAppo.Subject = jso["title"].ToString();
                     newAppo.Start = DateTime.Parse(jso["startDate"].ToString());
+                    newAppo.End = DateTime.Parse(jso["endDate"].ToString());
                     newAppos[j] = newAppo;
                     
                 }
