@@ -8,9 +8,10 @@ import Checkbox from '@mui/material/Checkbox';
 const getCalendars = () =>
 axios
 .get(
-  `https://localhost:7151/EWSApiScheduler/GetCalendars`      
+  `http://localhost:5152/EWSApiScheduler/GetCalendars`      
  )
 .then((res) => res.data)
+
 export function useCalendars() 
 {
   return useQuery<[],Error>
@@ -43,7 +44,6 @@ export function useAppos(currentDate:Date,calIds:string[])
   }
   export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean)=>
 {  
-  //console.log(CalIsLoading)
   return useQuery<AppointmentModel[],Error>
     (["appointmentData",currentDate,calIds],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
 }
