@@ -27,9 +27,9 @@ import { CalModel } from "../Support/Models";
 import {CheckBoxRender} from "./CheckBoxes"
 
 export function DevScheduler() { 
-  //console.log('start')
+ 
   const [currentDate, setCurrentDate] = React.useState(new Date());
-  //Post Appos 
+//Post Appos 
   const { mutate}=usePostAppo() 
 
   function commitChanges(changes:ChangeSet){  
@@ -40,34 +40,33 @@ export function DevScheduler() {
 
   const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
   
-  let calTitles:string[]=['','']
+  let calTitles:string[]=[]
   if(!CalIsLoading)
   {
     calTitles=CalData!.map((cal:CalModel)=>{
       return cal.title
     }) 
   }
-  //CheckBoxes Controller
-  const [checkBoxState, setCheckBoxesState] = React.useState(new Array(calTitles!.length).fill(true))
+//CheckBoxes Controller
+  let [checkBoxState, setCheckBoxesState] = React.useState(new Array(200).fill(true))
   const handleOnChange = (position:number) => {
   const updatedCheckedState = checkBoxState.map((item, index) =>
       index === position ? !item : item
       );
         setCheckBoxesState(updatedCheckedState);          
       }
-   //Get Appos
+//Get Appos
     let calIds:string[]=['','']
     
     if(!CalIsLoading)
     {
-    calIds=CalData!.map((cal:CalModel,index)=>{
+    calIds=CalData!.map((cal:CalModel,index)=>{    
       if(checkBoxState[index])
-      {
+      {        
       return cal.calId
       }
       return ''
-    })
-    //console.log(calIds) 
+    })  
     }    
    
     const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
