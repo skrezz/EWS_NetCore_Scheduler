@@ -29,14 +29,7 @@ import {CheckBoxRender} from "./CheckBoxes"
 export function DevScheduler() { 
  
   const [currentDate, setCurrentDate] = React.useState(new Date());
-//Post Appos 
-  const { mutate}=usePostAppo() 
 
-  function commitChanges(changes:ChangeSet){  
-    if (changes.added) {
-       mutate({ startDate: currentDate, ...changes.added})
-    }
-  }
 
   const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
   
@@ -70,6 +63,35 @@ export function DevScheduler() {
     }    
    
     const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
+
+    //Post/change/delete Appos 
+  const { mutate}=usePostAppo() 
+
+  function commitChanges(changes:ChangeSet){  
+    let appoTmp:AppointmentModel={
+        startDate:""
+      }  
+    if (changes.added) {
+       mutate({ startDate: currentDate, ...changes.added})
+    }
+    if (changes.changed) {      
+          
+       data!.forEach(appo=>{
+        if(changes!.changed![appo.id!])
+        {
+         appoTmp.id=appo.id       
+         appoTmp.title=changes!.changed![appo.id!].title
+         appoTmp.startDate=changes!.changed![appo.id!].startDate
+        }        
+      })      
+      mutate(appoTmp)
+      }
+      if (changes.deleted !== undefined) {
+        appoTmp.id=changes.deleted
+        appoTmp.title="deleteIt"
+        mutate(appoTmp)
+      }
+  }
 
     if (isLoading) return <div>Loading...</div>;
     if (CalIsLoading) return <div>Loading...</div>;

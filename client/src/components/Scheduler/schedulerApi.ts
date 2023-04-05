@@ -53,7 +53,12 @@ export function useAppos(currentDate:Date,calIds:string[])
 
 //Post appointments
 const postAppo =(Appo:AppointmentModel)=>{
-  //console.log('appo: ')
+  //console.log('appo: ')  
+  /*if(Appo.id!="")
+  {
+    Appo.id="id:"+Appo.id
+  }*/
+  
   //console.log(Appo)
   return axios.post('http://localhost:5152/EWSApiScheduler/PostAppos',Appo)
 }

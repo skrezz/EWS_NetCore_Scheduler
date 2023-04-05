@@ -182,8 +182,9 @@ namespace EWS_NetCore_Scheduler.Service
 
         public string PostAppo(JsonElement JSPostAppo)
         {
-            //Deserialise json to array of JsonObject[]
-            var items = JsonNode.Parse(JSPostAppo.ToString());
+            //Deserialise json to array of JsonObject[] 
+            var items = JsonObject.Parse(JSPostAppo.ToString());
+            //var type = items[0].GetType();
             JsonObject[] JsObjs =new JsonObject[1];
             Appointment[] newAppos = new Appointment[1];
             if (items.GetType().Name=="JsonArray")
@@ -206,7 +207,7 @@ namespace EWS_NetCore_Scheduler.Service
             IEWSActing EWS = new EWSs();
             ExchangeService service = EWS.CrEwsService();
             foreach(JsonObject jso in JsObjs)
-            {
+            {   
                 if (jso["id"] == null)
                 {
                     Appointment newAppo = new Appointment(service);
@@ -216,11 +217,16 @@ namespace EWS_NetCore_Scheduler.Service
                     newAppos[j] = newAppo;
                     
                 }
+                else if(jso["title"].ToString()== "deleteIt")
+                {
+                    DelAppo(jso["id"].ToString());
+                }
                 else
                 {
                     try
                     {
                         Appointment editAppo = EWS.EWSAppoBind(service, jso["id"].ToString(), AppoSchemas.AppoPropsSet(1));
+                        string test = jso["title"].ToString();
                         if (jso["title"] != null) editAppo.Subject = jso["title"].ToString();
                         if (jso["startDate"] != null) editAppo.Start = DateTime.Parse(jso["startDate"].ToString());
                         if (jso["endDate"] != null) editAppo.End = DateTime.Parse(jso["endDate"].ToString());
