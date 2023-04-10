@@ -30,7 +30,7 @@ namespace EWS_NetCore_Scheduler.Service
 
             return service;
         }
-        public Appointment[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate)
+        public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate)
         {
             IEWSActing EWS = new EWSs();
             //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
@@ -40,7 +40,7 @@ namespace EWS_NetCore_Scheduler.Service
             //View.date
             // Limit the properties returned to the appointment's subject, start time, and end time.
             iView.PropertySet = new PropertySet(BasePropertySet.FirstClassProperties);
-            Appointment[] apps = new Appointment[100];
+            Apps[] apps = new Apps[100];
             int i = 0;
             foreach (string CalendarId in CalendarIds)
             {
@@ -49,12 +49,18 @@ namespace EWS_NetCore_Scheduler.Service
                 // Retrieve a collection of appointments by using the calendar view. ];                
                 foreach (Appointment a in appointments)
                 {
-                    apps[i] = a;
+                    a.Culture = "ru-RU";
+                    a.StartTimeZone = TimeZoneInfo.Local;   
+                    a.EndTimeZone = TimeZoneInfo.Local;   
+                    apps[i] = new Apps{
+                        App=a,
+                        CalId= CalendarId
+                    };
                     i++;
                 }
             }
             int j = 0;
-            Appointment[] appsFin= new Appointment[Array.IndexOf(apps, null)];
+            Apps[] appsFin= new Apps[Array.IndexOf(apps, null)];
             while (apps[j] != null)
             {
                 appsFin[j] = apps[j];                

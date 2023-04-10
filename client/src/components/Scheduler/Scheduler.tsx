@@ -24,7 +24,10 @@ import {
 
 import {useCalendars,useGetAppos,usePostAppo} from "./schedulerApi";
 import { CalModel } from "../Support/Models";
-import {CheckBoxRender} from "./CheckBoxes"
+import {CheckBoxRender,BasicLayout,SelectedCal} from "./UtilityComponents"
+
+export let calTitles:string[]=[]
+
 
 export function DevScheduler() { 
  
@@ -33,7 +36,7 @@ export function DevScheduler() {
 
   const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
   
-  let calTitles:string[]=[]
+  
   if(!CalIsLoading)
   {
     calTitles=CalData!.map((cal:CalModel)=>{
@@ -64,7 +67,7 @@ export function DevScheduler() {
    
     const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
 
-    //Post/change/delete Appos 
+//Post/change/delete Appos 
   const { mutate}=usePostAppo() 
 
   function commitChanges(changes:ChangeSet){  
@@ -72,7 +75,7 @@ export function DevScheduler() {
         startDate:""
       }  
     if (changes.added) {
-       mutate({ startDate: currentDate, ...changes.added})
+             mutate({ startDate: currentDate, calId:calIds[SelectedCal], ...changes.added})       
     }
     if (changes.changed) {      
           
@@ -82,6 +85,7 @@ export function DevScheduler() {
          appoTmp.id=appo.id       
          appoTmp.title=changes!.changed![appo.id!].title
          appoTmp.startDate=changes!.changed![appo.id!].startDate
+         appoTmp.calId=appo.calId
         }        
       })      
       mutate(appoTmp)
@@ -123,7 +127,10 @@ export function DevScheduler() {
             showOpenButton
             showDeleteButton
           />
-          <AppointmentForm />
+          <AppointmentForm 
+          basicLayoutComponent={BasicLayout}          
+          />
+
       </Scheduler>
     </Paper>  
     </div>
