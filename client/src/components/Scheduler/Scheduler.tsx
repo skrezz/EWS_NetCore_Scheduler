@@ -27,7 +27,7 @@ import { CalModel } from "../Support/Models";
 import {CheckBoxRender,BasicLayout,SelectedCal} from "./UtilityComponents"
 
 export let calTitles:string[]=[]
-
+export let calIds:string[]=['','']
 
 export function DevScheduler() { 
  
@@ -51,8 +51,7 @@ export function DevScheduler() {
       );
         setCheckBoxesState(updatedCheckedState);          
       }
-//Get Appos
-    let calIds:string[]=['','']
+//Get Appos 
     
     if(!CalIsLoading)
     {

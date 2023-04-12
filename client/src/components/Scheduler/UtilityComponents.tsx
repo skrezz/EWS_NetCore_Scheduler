@@ -3,7 +3,7 @@ import React from 'react'
 import { CalModel } from '../Support/Models'
 import { AppointmentForm } from '@devexpress/dx-react-scheduler-material-ui'
 import {    AppointmentModel, SelectOption  } from "@devexpress/dx-react-scheduler";
-import { calTitles } from "./Scheduler";
+import { calTitles,calIds } from "./Scheduler";
 
 export function CheckBoxRender(calTitles:string[],checkBoxState:any[],handleOnChange: (position: number) => void)
 {
@@ -30,10 +30,12 @@ export function CheckBoxRender(calTitles:string[],checkBoxState:any[],handleOnCh
 export let SelectedCal:number=0
 
 export function BasicLayout({ onFieldChange,appointmentData, ...restProps}:any) { 
-   
-  if(appointmentData.customField==undefined)
+  
+  if(calIds.indexOf(appointmentData.calId)>-1)
+    appointmentData.customField= calIds.indexOf(appointmentData.calId)
+  else
     appointmentData.customField= "0"
-    
+
     const CalTitles:SelectOption[]=calTitles.map((CTitle,number)=>{
     let CTitleSelectOpt:SelectOption={
       text:CTitle,
