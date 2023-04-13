@@ -1,8 +1,7 @@
 import * as React from "react";
 import "../../utils/date-extension"
 import Paper from "@mui/material/Paper";
-import { useMutation, useQuery } from "react-query";
-import axios from "axios";
+
 import {
   AppointmentModel,
   ViewState,
@@ -24,18 +23,15 @@ import {
 
 import {useCalendars,useGetAppos,usePostAppo} from "./schedulerApi";
 import { CalModel } from "../Support/Models";
-import {CheckBoxRender,BasicLayout,SelectedCal} from "./UtilityComponents"
+import {CheckBoxRender,BasicLayout,SelectedCal,PlaceHolder} from "./UtilityComponents"
 
 export let calTitles:string[]=[]
 export let calIds:string[]=['','']
 
 export function DevScheduler() { 
- 
+ console.log("------------------")
   const [currentDate, setCurrentDate] = React.useState(new Date());
-
-
   const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
-  
   
   if(!CalIsLoading)
   {
@@ -64,10 +60,10 @@ export function DevScheduler() {
     })  
     }    
    
-    const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
+const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
 
 //Post/change/delete Appos 
-  const { mutate}=usePostAppo() 
+  const {mutate}=usePostAppo() 
 
   function commitChanges(changes:ChangeSet){  
     let appoTmp:AppointmentModel={
@@ -95,9 +91,9 @@ export function DevScheduler() {
         mutate(appoTmp)
       }
   }
-
-    if (isLoading) return <div>Loading...</div>;
-    if (CalIsLoading) return <div>Loading...</div>;
+    //if(mutaLoading) return PlaceHolder()   
+    if (isFetching ) return PlaceHolder()
+    if (CalIsLoading) return PlaceHolder();
     if (error) return <div>An error has occurred: + {error.message}</div>; 
 
     

@@ -17,14 +17,18 @@ export function useCalendars()
   return useQuery<[],Error>
     (["availableCalendars"],()=> getCalendars())
 } 
+
+//get appos
   const getAppos =(currentDate:Date,calIds:string[])=>{
     return axios.post(`http://localhost:5152/EWSApiScheduler/GetAppos?startD=${currentDate.toISODate()}`,calIds)
     .then((res) => res.data)
   }
-  export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean)=>
+
+
+export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean)=>
 {  
   return useQuery<AppointmentModel[],Error>
-    (["appointmentData",currentDate,calIds],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
+    (['appointmentData',currentDate,calIds],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
 }
 
 
@@ -40,7 +44,7 @@ export const usePostAppo=()=>
   return useMutation(postAppo,
     {
       onSuccess:()=>
-      {
+      {        
         queryClient.invalidateQueries('appointmentData')
       }
     })
