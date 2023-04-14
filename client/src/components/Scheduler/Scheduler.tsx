@@ -27,11 +27,11 @@ import {CheckBoxRender,BasicLayout,SelectedCal,PlaceHolder} from "./UtilityCompo
 
 export let calTitles:string[]=[]
 export let calIds:string[]=['','']
+let changesCommited:number=0;
 
 export function DevScheduler() { 
- console.log("------------------")
   const [currentDate, setCurrentDate] = React.useState(new Date());
-  const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
+  const { isLoading:CalIsLoading, error:CalError, data:CalData,isPreviousData:calsNotChanging }  = useCalendars()
   
   if(!CalIsLoading)
   {
@@ -58,9 +58,8 @@ export function DevScheduler() {
       }
       return ''
     })  
-    }    
-   
-const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
+    }     
+
 
 //Post/change/delete Appos 
   const {mutate}=usePostAppo() 
@@ -70,7 +69,7 @@ const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!Ca
         startDate:""
       }  
     if (changes.added) {
-             mutate({ startDate: currentDate, calId:calIds[SelectedCal], ...changes.added})       
+             mutate({ startDate: currentDate, calId:calIds[SelectedCal], ...changes.added})                    
     }
     if (changes.changed) {      
           
@@ -90,7 +89,10 @@ const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!Ca
         appoTmp.title="deleteIt"
         mutate(appoTmp)
       }
+      changesCommited=changesCommited+1     
   }
+  const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading,changesCommited)
+  
     //if(mutaLoading) return PlaceHolder()   
     if (isFetching ) return PlaceHolder()
     if (CalIsLoading) return PlaceHolder();

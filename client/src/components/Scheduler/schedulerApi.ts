@@ -25,10 +25,10 @@ export function useCalendars()
   }
 
 
-export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean)=>
+export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean,changesCommited:number)=>
 {  
   return useQuery<AppointmentModel[],Error>
-    (['appointmentData',currentDate,calIds],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
+    (['appointmentData',currentDate,calIds,changesCommited],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
 }
 
 
