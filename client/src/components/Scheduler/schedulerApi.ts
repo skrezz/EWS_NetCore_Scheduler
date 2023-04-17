@@ -1,56 +1,55 @@
 import { AppointmentModel } from "@devexpress/dx-react-scheduler";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import Checkbox from '@mui/material/Checkbox';
+import { ICalendar } from "../Support/Models";
 
+const API_BASE_URL = "http://localhost:5152/EWSApiScheduler";
 
 //get Calendars
-const getCalendars = () =>
-axios
-.get(
-  `http://localhost:5152/EWSApiScheduler/GetCalendars`      
- )
-.then((res) => res.data)
-
-export function useCalendars() 
-{
-  return useQuery<[],Error>
-    (["availableCalendars"],()=> getCalendars())
-} 
+const getCalendars = async () : Promise<ICalendar[]> => {
+  const response = await axios.get(`${API_BASE_URL}/GetCalendars`);
+  return response.data;
+};
 
 //get appos
-  const getAppos =(currentDate:Date,calIds:string[])=>{
-    return axios.post(`http://localhost:5152/EWSApiScheduler/GetAppos?startD=${currentDate.toISODate()}`,calIds)
-    .then((res) => res.data)
-  }
-
-
-export const useGetAppos=(currentDate:Date,calIds:string[],CalIsLoading:boolean,changesCommited:number)=>
-{  
-  return useQuery<AppointmentModel[],Error>
-    (['appointmentData',currentDate,calIds,changesCommited],()=> getAppos(currentDate,calIds),{enabled: CalIsLoading})
-}
-
-
-
+const getAppos = async (currentDate: Date, calIds: string[]) => {
+  const response = await axios.post(
+    `${API_BASE_URL}/GetAppos?startD=${currentDate.toISODate()}`,
+    calIds
+  );
+  return response.data;
+};
 
 //Post appointments
-const postAppo =(Appo:AppointmentModel)=>{
-  return axios.post('http://localhost:5152/EWSApiScheduler/PostAppos',Appo)
-}
-export const usePostAppo=()=>
-{
-  const queryClient = useQueryClient()
-  return useMutation(postAppo,
-    {
-      onSuccess:()=>
-      {        
-        queryClient.invalidateQueries('appointmentData')
-      }
-    })
+const postAppo = async (Appo: AppointmentModel) => {
+  const response = await axios.post(`${API_BASE_URL}/PostAppos`, Appo);
+  return response.data;
+};
+
+
+
+export const useCalendars = () => {
+  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars());
 }
 
+export const useGetAppos = (
+  currentDate: Date,
+  calIds: string[] | undefined,
+  CalIsLoading: boolean
+  //changesCommited: number
+) => {
+  return useQuery<AppointmentModel[], Error>(
+    ['appointmentData', calIds,currentDate],
+    () => getAppos(currentDate, calIds!),
+    { enabled: CalIsLoading }
+  );
+};
 
-
-
-
+export const usePostAppo = () => {
+  const queryClient = useQueryClient();
+  return useMutation(postAppo, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("appointmentData");
+    },
+  });
+};
