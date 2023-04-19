@@ -46,7 +46,6 @@ export function DevScheduler() {
     currentDate,
     selectedCalendars,
     !CalIsLoading
-    // changesCommited
   );
 
   //Post/change/delete Appos
@@ -73,7 +72,6 @@ export function DevScheduler() {
       });
     }
     if (changes.changed) {
-      console.log(changes);
       data!.forEach((appo) => {
         if (changes!.changed![appo.id!]) {
           appoTmp.id = appo.id;
