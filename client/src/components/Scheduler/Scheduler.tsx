@@ -92,26 +92,32 @@ export function DevScheduler() {
   }
 
   if (CalIsLoading) return <PlaceHolder />;
-  if (error) return <div>An error has occurred: + {error.message}</div>;
+  if (error || CalError)
+    return (
+      <div>
+        An error has occurred: +{" "}
+        {error === null ? CalError!.message : error!.message}
+      </div>
+    );
 
   return (
-    <Paper>
-      <Box>
-        <Box sx={{ display: "flex" }}>
-          {CalData?.map((calendar) => {
-            return (
-              <CheckBoxRender
-                key={calendar.calId}
-                calendar={calendar}
-                handleChanges={handleSelectedCalendars}
-              />
-            );
-          })}
-        </Box>
+    <React.Fragment>
+      <Paper className="header">
+        {CalData?.map((calendar) => {
+          return (
+            <CheckBoxRender
+              key={calendar.calId}
+              calendar={calendar}
+              handleChanges={handleSelectedCalendars}
+            />
+          );
+        })}
+      </Paper>
+      <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />
         ) : (
-          <Scheduler data={data}>
+          <Scheduler data={data} height={660}>
             <ViewState
               currentDate={currentDate}
               onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
@@ -134,7 +140,7 @@ export function DevScheduler() {
             />
           </Scheduler>
         )}
-      </Box>
-    </Paper>
+      </Paper>
+    </React.Fragment>
   );
 }
