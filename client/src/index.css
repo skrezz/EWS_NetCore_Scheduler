@@ -35,7 +35,7 @@ body {
   position: relative;
   margin-top: 60px; /* Отступ сверху равен высоте Header */
   margin-bottom: 40px; /* Отступ снизу равен высоте Footer */
-  padding: 15px;
   overflow-y: auto; /* Добавить вертикальную прокрутку, если контент не влезает */
   height: calc(100% - 60px); /* Высота контента равна 100% минус высота Header и Footer */
+  width: 100%;
 }
