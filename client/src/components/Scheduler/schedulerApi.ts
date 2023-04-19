@@ -5,11 +5,7 @@ import { ICalendar } from "../Support/Models";
 
 const API_BASE_URL = "http://localhost:5152/EWSApiScheduler";
 
-//get Calendars
-const getCalendars = async () : Promise<ICalendar[]> => {
-  const response = await axios.get(`${API_BASE_URL}/GetCalendars`);
-  return response.data;
-};
+
 
 //get appos
 const getAppos = async (currentDate: Date, calIds: string[]) => {
@@ -26,10 +22,14 @@ const postAppo = async (Appo: AppointmentModel) => {
   return response.data;
 };
 
-
+//get Calendars
+const getCalendars = async () : Promise<ICalendar[]> => {
+  const response = await axios.get(`${API_BASE_URL}/GetCalendars`);
+  return response.data;
+};
 
 export const useCalendars = () => {
-  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars());
+  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {refetchOnWindowFocus: false});
 }
 
 export const useGetAppos = (
@@ -41,7 +41,7 @@ export const useGetAppos = (
   return useQuery<AppointmentModel[], Error>(
     ['appointmentData', calIds,currentDate],
     () => getAppos(currentDate, calIds!),
-    { enabled: CalIsLoading }
+    { enabled: CalIsLoading,refetchOnWindowFocus: false}
   );
 };
 
