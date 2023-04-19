@@ -26,11 +26,14 @@ import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout } from "../UtilityComponents/BasicLayoutComponent";
+import { Box } from "@mui/material";
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
 
-  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>([]);
+  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(
+    []
+  );
 
   const {
     isLoading: CalIsLoading,
@@ -43,11 +46,11 @@ export function DevScheduler() {
     currentDate,
     selectedCalendars,
     !CalIsLoading
-   // changesCommited
+    // changesCommited
   );
 
-    //Post/change/delete Appos
-    const postAppoinment = usePostAppo();
+  //Post/change/delete Appos
+  const postAppoinment = usePostAppo();
 
   const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
     if (checked) {
@@ -57,7 +60,7 @@ export function DevScheduler() {
         selectedCalendars.filter((cal) => cal !== calendar.calId)
       );
     }
-  }
+  };
 
   function commitChanges(changes: ChangeSet) {
     let appoTmp: AppointmentModel = {
@@ -70,7 +73,7 @@ export function DevScheduler() {
       });
     }
     if (changes.changed) {
-      console.log(changes)
+      console.log(changes);
       data!.forEach((appo) => {
         if (changes!.changed![appo.id!]) {
           appoTmp.id = appo.id;
@@ -86,37 +89,52 @@ export function DevScheduler() {
       appoTmp.title = "deleteIt";
       postAppoinment.mutate(appoTmp);
     }
-
   }
 
-  if (CalIsLoading) return <PlaceHolder/>
+  if (CalIsLoading) return <PlaceHolder />;
   if (error) return <div>An error has occurred: + {error.message}</div>;
 
   return (
     <Paper>
-      {CalData?.map(calendar => {        
-          return <CheckBoxRender key={calendar.calId} calendar={calendar} handleChanges={handleSelectedCalendars}/>
-      })} 
-      {isLoading ? <PlaceHolder/> :    
-      <Scheduler data={data}>
-        <ViewState
-          currentDate={currentDate}
-          onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
-        />
-        <EditingState onCommitChanges={(changes) => commitChanges(changes)} />
-        <IntegratedEditing />
-        <DayView startDayHour={9} endDayHour={19} />
-        <ConfirmationDialog />
-        <Toolbar />
-        <DateNavigator />
-        <TodayButton />
-        <Appointments />
-        <AppointmentTooltip showOpenButton showDeleteButton />
-        <AppointmentForm 
-          basicLayoutComponent={(props) => <BasicLayout {...props} calData={CalData}/>}          
-          />
-      </Scheduler>
-      }
+      <Box>
+        <Box sx={{ display: "flex" }}>
+          {CalData?.map((calendar) => {
+            return (
+              <CheckBoxRender
+                key={calendar.calId}
+                calendar={calendar}
+                handleChanges={handleSelectedCalendars}
+              />
+            );
+          })}
+        </Box>
+        {isLoading ? (
+          <PlaceHolder />
+        ) : (
+          <Scheduler data={data}>
+            <ViewState
+              currentDate={currentDate}
+              onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
+            />
+            <EditingState
+              onCommitChanges={(changes) => commitChanges(changes)}
+            />
+            <IntegratedEditing />
+            <DayView startDayHour={9} endDayHour={19} />
+            <ConfirmationDialog />
+            <Toolbar />
+            <DateNavigator />
+            <TodayButton />
+            <Appointments />
+            <AppointmentTooltip showOpenButton showDeleteButton />
+            <AppointmentForm
+              basicLayoutComponent={(props) => (
+                <BasicLayout {...props} calData={CalData} />
+              )}
+            />
+          </Scheduler>
+        )}
+      </Box>
     </Paper>
   );
 }
