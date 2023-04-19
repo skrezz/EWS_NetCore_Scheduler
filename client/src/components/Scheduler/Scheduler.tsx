@@ -108,7 +108,7 @@ export function DevScheduler() {
             );
           })}
         </Box>
-        {isLoading ? (
+        {isLoading || isFetching ? (
           <PlaceHolder />
         ) : (
           <Scheduler data={data}>
