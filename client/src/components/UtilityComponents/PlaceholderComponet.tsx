@@ -6,11 +6,11 @@ export function PlaceHolder()
   return(
     <div
     style={{
-      position: "absolute",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-      background: "white"
+      display: "flex",
+      height: "100vh",
+      justifyContent: "center",
+      alignItems: "center"
+      
     }}
   >
   <RotatingSquare

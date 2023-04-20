@@ -46,7 +46,6 @@ export function DevScheduler() {
     currentDate,
     selectedCalendars,
     !CalIsLoading
-    // changesCommited
   );
 
   //Post/change/delete Appos
@@ -75,9 +74,8 @@ export function DevScheduler() {
       });
     }
     if (changes.changed) {
-      
-      data!.forEach((appo) => {        
-        if (changes!.changed![appo.id!]) {                
+      data!.forEach((appo) => {
+        if (changes!.changed![appo.id!]) {
           appoTmp.id = appo.id;
           appoTmp.title = changes!.changed![appo.id!].title;
           appoTmp.startDate = changes!.changed![appo.id!].startDate;
@@ -97,26 +95,32 @@ export function DevScheduler() {
   }
 
   if (CalIsLoading) return <PlaceHolder />;
-  if (error) return <div>An error has occurred: + {error.message}</div>;
+  if (error || CalError)
+    return (
+      <div>
+        An error has occurred: +{" "}
+        {error === null ? CalError!.message : error!.message}
+      </div>
+    );
 
   return (
-    <Paper>
-      <Box>
-        <Box sx={{ display: "flex" }}>
-          {CalData?.map((calendar) => {
-            return (
-              <CheckBoxRender
-                key={calendar.calId}
-                calendar={calendar}
-                handleChanges={handleSelectedCalendars}
-              />
-            );
-          })}
-        </Box>
+    <React.Fragment>
+      <Paper className="header">
+        {CalData?.map((calendar) => {
+          return (
+            <CheckBoxRender
+              key={calendar.calId}
+              calendar={calendar}
+              handleChanges={handleSelectedCalendars}
+            />
+          );
+        })}
+      </Paper>
+      <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />
         ) : (
-          <Scheduler data={data}>
+          <Scheduler data={data} height={660}>
             <ViewState
               currentDate={currentDate}
               onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
@@ -139,7 +143,7 @@ export function DevScheduler() {
             />
           </Scheduler>
         )}
-      </Box>
-    </Paper>
+      </Paper>
+    </React.Fragment>
   );
 }
