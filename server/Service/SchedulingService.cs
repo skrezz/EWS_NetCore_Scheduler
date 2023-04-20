@@ -252,7 +252,7 @@ namespace EWS_NetCore_Scheduler.Service
                     newAppos[j] = newAppo;
                     
                 }
-                else if(jso["title"].ToString()== "deleteIt")
+                else if(jso["title"]!=null&& jso["title"].ToString()== "deleteIt")
                 {
                     DelAppo(jso["id"].ToString());
                 }
@@ -261,7 +261,7 @@ namespace EWS_NetCore_Scheduler.Service
                     try
                     {
                         Appointment editAppo = EWS.EWSAppoBind(service, jso["id"].ToString(), AppoSchemas.AppoPropsSet(1));
-                        string test = jso["title"].ToString();
+                        //string test = jso["title"].ToString();
                         if (jso["title"] != null) editAppo.Subject = jso["title"].ToString();
                         if (jso["startDate"] != null) editAppo.Start = DateTime.Parse(jso["startDate"].ToString());
                         if (jso["endDate"] != null) editAppo.End = DateTime.Parse(jso["endDate"].ToString());
@@ -295,7 +295,14 @@ namespace EWS_NetCore_Scheduler.Service
                 if (newAppo != null)
                     try
                     {
-                        newAppo.Save(calId,SendInvitationsMode.SendToNone);
+                        if (newAppo.Id == null)
+                            newAppo.Save(calId, SendInvitationsMode.SendToNone);
+                        else
+                        {
+                            newAppo.Move(calId);
+                            continue;
+                            // newAppo.Update();
+                        }
                         Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
                     }
                     catch (System.InvalidOperationException ex)

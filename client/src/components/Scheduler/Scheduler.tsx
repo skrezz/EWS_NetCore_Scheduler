@@ -25,7 +25,7 @@ import { useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
 import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
-import { BasicLayout } from "../UtilityComponents/BasicLayoutComponent";
+import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Box } from "@mui/material";
 
 export function DevScheduler() {
@@ -61,25 +61,30 @@ export function DevScheduler() {
       );
     }
   };
-
+  
   function commitChanges(changes: ChangeSet) {
     let appoTmp: AppointmentModel = {
       startDate: "",
     };
     if (changes.added) {
+      
       postAppoinment.mutate({
         startDate: currentDate,
+        calId:AppointmentForm.BasicLayout.defaultProps?.appointmentData?.calId,
         ...changes.added,
       });
     }
     if (changes.changed) {
-      console.log(changes);
-      data!.forEach((appo) => {
-        if (changes!.changed![appo.id!]) {
+      
+      data!.forEach((appo) => {        
+        if (changes!.changed![appo.id!]) {                
           appoTmp.id = appo.id;
           appoTmp.title = changes!.changed![appo.id!].title;
           appoTmp.startDate = changes!.changed![appo.id!].startDate;
-          appoTmp.calId = appo.calId;
+          if(changes!.changed![appo.id!].calId !==undefined)
+            appoTmp.calId=changes!.changed![appo.id!].calId
+          else
+            appoTmp.calId = appo.calId;
         }
       });
       postAppoinment.mutate(appoTmp);
