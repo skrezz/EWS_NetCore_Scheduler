@@ -68,8 +68,7 @@ export function DevScheduler() {
     if (changes.added) {
       
       postAppoinment.mutate({
-        startDate: currentDate,
-        calId:AppointmentForm.BasicLayout.defaultProps?.appointmentData?.calId,
+        startDate: currentDate,       
         ...changes.added,
       });
     }
