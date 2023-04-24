@@ -1,13 +1,41 @@
 body {
+  height: 100%;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  padding: 0;
+  overflow: hidden;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px; /* Высота Header */
+  background-color: #f1f1f1; /* Цвет фона Header */
+  z-index: 10; /* Поднять Header над контентом */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40px; /* Высота Footer */
+  background-color: #f1f1f1; /* Цвет фона Footer */
+  z-index: 10; /* Поднять Footer над контентом */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  position: relative;
+  margin-top: 60px; /* Отступ сверху равен высоте Header */
+  margin-bottom: 40px; /* Отступ снизу равен высоте Footer */
+  overflow-y: auto; /* Добавить вертикальную прокрутку, если контент не влезает */
+  height: calc(100vh - 60px); /* Высота контента равна 100% минус высота Header и Footer */
+  width: 100%;
 }

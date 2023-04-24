@@ -10,5 +10,6 @@ namespace EWS_NetCore_Scheduler.Models
         public string DTSTART { get; set; }
         public string rRule { get; set; }
         public string exDate { get; set; }
+        public string calId { get; set; }
     }
 }
