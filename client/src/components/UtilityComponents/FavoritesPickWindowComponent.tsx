@@ -1,4 +1,8 @@
 import { Box, Modal, Paper } from "@mui/material";
+import { CheckBoxRender } from "./CheckBoxListComponet";
+
+
+  
 const style = {
     position: 'absolute' as 'absolute',
     top: '50%',
@@ -11,11 +15,8 @@ const style = {
     p: 4,
   };
 
-export function OpenFavsWindow(favsWinOpen:boolean,handleFavsWinClose:any)
-{
-   
-
-    
+export function OpenFavsWindow(CalData:any,selectedFavCalendars:string[],favsWinOpen:boolean,handleFavsWinClose:any,handleSelectedFavCalendars:any)
+{     
     return(
         <Paper className="FavsWindow">
             <Modal
@@ -25,10 +26,17 @@ export function OpenFavsWindow(favsWinOpen:boolean,handleFavsWinClose:any)
             aria-describedby="parent-modal-description"
             >            
                 <Box sx={{ ...style, width: 400 }}>
-                <h2 id="parent-modal-title">Text in a modal</h2>
-                <p id="parent-modal-description">
-                    Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-                </p>         
+                    {CalData?.map((calendar:any) => {
+                        selectedFavCalendars.indexOf(calendar.calId)>-1?calendar.checkedFav=true:calendar.checkedFav=false
+                    return (
+                        <CheckBoxRender
+                        key={calendar.calId}
+                        calendar={calendar}
+                        fromFavsWindow={true}                        
+                        handleChanges={handleSelectedFavCalendars}                        
+                        />
+                    );
+                    })}
                 </Box>
             </Modal>
          </Paper>

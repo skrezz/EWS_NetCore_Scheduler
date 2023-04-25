@@ -28,19 +28,54 @@ import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Button } from "@mui/material";
 import { OpenFavsWindow } from "../UtilityComponents/FavoritesPickWindowComponent";
+import { json } from "stream/consumers";
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
 
-  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(
-    []
-  );
+  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(() => {
+    const stickyValue = localStorage.getItem('SelectedBaseCals');
+    return stickyValue !== null
+      ? JSON.parse(stickyValue)
+      : [];
+  })
+
+  const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
+    if (checked) {
+      setSelectedCalendars([...selectedCalendars, calendar.calId]);      
+    }
+    else {
+      setSelectedCalendars(
+        selectedCalendars.filter((cal) => cal !== calendar.calId)        
+      );      
+    }   
+    
+  };
+
+  const [selectedFavCalendars, setSelectedFavCalendars] = React.useState<string[]>(() => {
+    const stickyValue = localStorage.getItem('SelectedFavCals');
+    return stickyValue !== null
+      ? JSON.parse(stickyValue)
+      : [];
+  })
+
+  const handleSelectedFavCalendars = (calendar: ICalendar, checked: boolean) => {
+    if (checked) {
+      setSelectedFavCalendars([...selectedFavCalendars, calendar.calId]);      
+    } else {
+      setSelectedFavCalendars(
+        selectedFavCalendars.filter((cal) => cal !== calendar.calId)
+      );
+    } 
+    
+  };
 
   const [favsWinOpen, setFavsWinOpen] = React.useState(false);
   const handleFavsWinOpen = () => {
     setFavsWinOpen(true);   
   };
   const handleFavsWinClose = () => {
+    localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
     setFavsWinOpen(false);
   };
 
@@ -61,15 +96,7 @@ export function DevScheduler() {
   //Post/change/delete Appos
   const postAppoinment = usePostAppo();
 
-  const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
-    if (checked) {
-      setSelectedCalendars([...selectedCalendars, calendar.calId]);
-    } else {
-      setSelectedCalendars(
-        selectedCalendars.filter((cal) => cal !== calendar.calId)
-      );
-    }
-  };
+  
   
   function commitChanges(changes: ChangeSet) {
     let appoTmp: AppointmentModel = {
@@ -115,11 +142,13 @@ export function DevScheduler() {
   return (
     <React.Fragment>
       <Paper className="header">
-        {CalData?.map((calendar) => {
+        {CalData?.map((calendar) => {  
+          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false        
           return (
             <CheckBoxRender
               key={calendar.calId}
               calendar={calendar}
+              fromFavsWindow={false}
               handleChanges={handleSelectedCalendars}
             />
           );
@@ -137,7 +166,7 @@ export function DevScheduler() {
       }      
       </Paper>
       
-      {OpenFavsWindow(favsWinOpen,handleFavsWinClose)}
+      {OpenFavsWindow(CalData,selectedFavCalendars,favsWinOpen,handleFavsWinClose,handleSelectedFavCalendars)}
   
       <Paper className="content">
         {isLoading || isFetching ? (

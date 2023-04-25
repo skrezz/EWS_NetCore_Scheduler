@@ -1,4 +1,6 @@
 export interface ICalendar {
   calId: string,
-  title: string
+  title: string,
+  checkedFav:boolean,
+  checkedBase:boolean
 }
