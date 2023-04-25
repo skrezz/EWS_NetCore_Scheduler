@@ -17,7 +17,7 @@ namespace EWS_NetCore_Scheduler.Service
         JsonResult GetAppos(string[] CalendarIds, string startD);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
-        string PostOrEditAppo(ExchangeService service, Appointment[] newAppos);
+        string PostOrEditAppo(ExchangeService service, Appointment[] newAppos,string calId);
         string DelAppo(string id);
         Cal[] GetCals();
     }
@@ -66,10 +66,16 @@ namespace EWS_NetCore_Scheduler.Service
                     jk++;
                 }
             }
-              IEWSActing EWS = _EWSActing;
+            IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Appointment[] appointments = EWS.FindAppointments(service, trueCals, startDate);
+            Apps[] appointmentsTMP = EWS.FindAppointments(service, trueCals, startDate);
+            Appointment[] appointments = new Appointment[appointmentsTMP.Length];
+            for (int iAp=0; iAp < appointmentsTMP.Length; iAp++)
+            {
+                appointments[iAp] = appointmentsTMP[iAp].App;
+            }
+
             Appo[] ApposArray = new Appo[appointments.Length];
 
             int i = 0;
@@ -80,8 +86,9 @@ namespace EWS_NetCore_Scheduler.Service
                     string[] RecStrings = RecStrings = GetRelatedRecurrenceCalendarItems(service, a);
                     Appo appo = new Appo();
                     appo.title = a.Subject.ToString();
-                    appo.startDate = a.Start.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
-                    appo.endDate = a.End.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    appo.startDate = a.Start.AddHours(TimeZoneInfo.Local.BaseUtcOffset.Hours).ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    appo.endDate = a.End.AddHours(TimeZoneInfo.Local.BaseUtcOffset.Hours).ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+                    appo.calId= appointmentsTMP[i].CalId;
                     if (a.IsAllDayEvent != null)
                         appo.allDay = a.IsAllDayEvent;
                     if (a.Id != null)
@@ -182,8 +189,9 @@ namespace EWS_NetCore_Scheduler.Service
 
         public string PostAppo(JsonElement JSPostAppo)
         {
-            //Deserialise json to array of JsonObject[]
-            var items = JsonNode.Parse(JSPostAppo.ToString());
+            //Deserialise json to array of JsonObject[] 
+            var items = JsonObject.Parse(JSPostAppo.ToString());
+            //var type = items[0].GetType();
             JsonObject[] JsObjs =new JsonObject[1];
             Appointment[] newAppos = new Appointment[1];
             if (items.GetType().Name=="JsonArray")
@@ -205,25 +213,59 @@ namespace EWS_NetCore_Scheduler.Service
             //creating or editing appointments
             IEWSActing EWS = new EWSs();
             ExchangeService service = EWS.CrEwsService();
+            string calId = "";
             foreach(JsonObject jso in JsObjs)
             {
+               /* #region Convert UTC to Local Timezone
+                //Problem is in service it wont work with TimeZoneInfo.Local
+
+                //start
+                string TrueStartDateTime = "";
+                if (jso["startDate"] != null&& jso["startDate"].ToString()!="")
+                {
+                    DateTime ChangedTime = DateTime.Parse(jso["startDate"].ToString());
+                    ChangedTime.AddHours(TimeZoneInfo.Local.BaseUtcOffset.Hours);
+                    jso["startDate"] = ChangedTime;
+                    TrueStartDateTime = jso["startDate"].ToString().Remove(jso["startDate"].ToString().IndexOf("+"));
+                    TrueStartDateTime = TrueStartDateTime + "Z";
+                    TrueStartDateTime = TrueStartDateTime.Substring(1);
+                }
+                //end
+                string TrueEndDateTime = "";
+                if (jso["endDate"] != null)
+                {
+                    DateTime ChangedTime = DateTime.Parse(jso["endDate"].ToString());
+                    ChangedTime.AddHours(TimeZoneInfo.Local.BaseUtcOffset.Hours);
+                    jso["endDate"] = ChangedTime;
+                    TrueEndDateTime = jso["endDate"].ToString().Remove(jso["endDate"].ToString().IndexOf("+"));
+                    TrueEndDateTime = TrueEndDateTime + "Z";
+                    TrueEndDateTime = TrueEndDateTime.Substring(1);
+                }
+                #endregion*/
                 if (jso["id"] == null)
                 {
                     Appointment newAppo = new Appointment(service);
                     newAppo.Subject = jso["title"].ToString();
                     newAppo.Start = DateTime.Parse(jso["startDate"].ToString());
                     newAppo.End = DateTime.Parse(jso["endDate"].ToString());
+                    calId = jso["calId"].ToString();
                     newAppos[j] = newAppo;
                     
+                }
+                else if(jso["title"]!=null&& jso["title"].ToString()== "deleteIt")
+                {
+                    DelAppo(jso["id"].ToString());
                 }
                 else
                 {
                     try
                     {
                         Appointment editAppo = EWS.EWSAppoBind(service, jso["id"].ToString(), AppoSchemas.AppoPropsSet(1));
+                        //string test = jso["title"].ToString();
                         if (jso["title"] != null) editAppo.Subject = jso["title"].ToString();
                         if (jso["startDate"] != null) editAppo.Start = DateTime.Parse(jso["startDate"].ToString());
                         if (jso["endDate"] != null) editAppo.End = DateTime.Parse(jso["endDate"].ToString());
+                        if (jso["calId"] != null) calId = jso["calId"].ToString();
                         //stealed from internet. What is that?
                         // Unless explicitly specified, the default is to use SendToAllAndSaveCopy.
                         // This can convert an appointment into a meeting. To avoid this,
@@ -242,10 +284,10 @@ namespace EWS_NetCore_Scheduler.Service
                 j++;
             }              
             
-            return PostOrEditAppo(service, newAppos);            
+            return PostOrEditAppo(service, newAppos,calId);            
         }
 
-        public string PostOrEditAppo(ExchangeService service,Appointment[] newAppos)
+        public string PostOrEditAppo(ExchangeService service,Appointment[] newAppos,string calId)
         {
                     
             foreach (Appointment newAppo in newAppos)
@@ -253,7 +295,14 @@ namespace EWS_NetCore_Scheduler.Service
                 if (newAppo != null)
                     try
                     {
-                        newAppo.Save(SendInvitationsMode.SendToNone);
+                        if (newAppo.Id == null)
+                            newAppo.Save(calId, SendInvitationsMode.SendToNone);
+                        else
+                        {
+                            newAppo.Move(calId);
+                            continue;
+                            // newAppo.Update();
+                        }
                         Item item = Item.Bind(service, newAppo.Id, new PropertySet(ItemSchema.Subject));
                     }
                     catch (System.InvalidOperationException ex)

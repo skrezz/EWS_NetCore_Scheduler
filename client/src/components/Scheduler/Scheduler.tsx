@@ -1,14 +1,13 @@
 import * as React from "react";
-import "../../utils/date-extension"
+import "../../utils/date-extension";
 import Paper from "@mui/material/Paper";
-import { useMutation, useQuery } from "react-query";
-import axios from "axios";
+
 import {
   AppointmentModel,
   ViewState,
-  EditingState, 
+  EditingState,
   IntegratedEditing,
-  ChangeSet
+  ChangeSet,
 } from "@devexpress/dx-react-scheduler";
 import {
   Scheduler,
@@ -22,88 +21,128 @@ import {
   TodayButton,
 } from "@devexpress/dx-react-scheduler-material-ui";
 
-import {useCalendars,useGetAppos,usePostAppo} from "./schedulerApi";
-import { CalModel } from "../Support/Models";
-import {CheckBoxRender} from "./CheckBoxes"
+import { useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
+import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
+import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
+import { ICalendar } from "../Support/Models";
+import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
+import { Box } from "@mui/material";
 
-export function DevScheduler() { 
- 
+export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
-//Post Appos 
-  const { mutate}=usePostAppo() 
 
-  function commitChanges(changes:ChangeSet){  
+  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(
+    []
+  );
+
+  const {
+    isLoading: CalIsLoading,
+    error: CalError,
+    data: CalData,
+    isPreviousData: calsNotChanging,
+  } = useCalendars();
+
+  const { isLoading, error, data, isFetching } = useGetAppos(
+    currentDate,
+    selectedCalendars,
+    !CalIsLoading
+  );
+
+  //Post/change/delete Appos
+  const postAppoinment = usePostAppo();
+
+  const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
+    if (checked) {
+      setSelectedCalendars([...selectedCalendars, calendar.calId]);
+    } else {
+      setSelectedCalendars(
+        selectedCalendars.filter((cal) => cal !== calendar.calId)
+      );
+    }
+  };
+  
+  function commitChanges(changes: ChangeSet) {
+    let appoTmp: AppointmentModel = {
+      startDate: "",
+    };
     if (changes.added) {
-       mutate({ startDate: currentDate, ...changes.added})
+      
+      postAppoinment.mutate({
+        startDate: currentDate,       
+        ...changes.added,
+      });
+    }
+    if (changes.changed) {
+      data!.forEach((appo) => {
+        if (changes!.changed![appo.id!]) {
+          appoTmp.id = appo.id;
+          appoTmp.title = changes!.changed![appo.id!].title;
+          appoTmp.startDate = changes!.changed![appo.id!].startDate;
+          if(changes!.changed![appo.id!].calId !==undefined)
+            appoTmp.calId=changes!.changed![appo.id!].calId
+          else
+            appoTmp.calId = appo.calId;
+        }
+      });
+      postAppoinment.mutate(appoTmp);
+    }
+    if (changes.deleted !== undefined) {
+      appoTmp.id = changes.deleted;
+      appoTmp.title = "deleteIt";
+      postAppoinment.mutate(appoTmp);
     }
   }
 
-  const { isLoading:CalIsLoading, error:CalError, data:CalData }  = useCalendars()
-  
-  let calTitles:string[]=[]
-  if(!CalIsLoading)
-  {
-    calTitles=CalData!.map((cal:CalModel)=>{
-      return cal.title
-    }) 
-  }
-//CheckBoxes Controller
-  let [checkBoxState, setCheckBoxesState] = React.useState(new Array(200).fill(true))
-  const handleOnChange = (position:number) => {
-  const updatedCheckedState = checkBoxState.map((item, index) =>
-      index === position ? !item : item
-      );
-        setCheckBoxesState(updatedCheckedState);          
-      }
-//Get Appos
-    let calIds:string[]=['','']
-    
-    if(!CalIsLoading)
-    {
-    calIds=CalData!.map((cal:CalModel,index)=>{    
-      if(checkBoxState[index])
-      {        
-      return cal.calId
-      }
-      return ''
-    })  
-    }    
-   
-    const { isLoading, error, data, isFetching }= useGetAppos(currentDate,calIds,!CalIsLoading) 
+  if (CalIsLoading) return <PlaceHolder />;
+  if (error || CalError)
+    return (
+      <div>
+        An error has occurred: +{" "}
+        {error === null ? CalError!.message : error!.message}
+      </div>
+    );
 
-    if (isLoading) return <div>Loading...</div>;
-    if (CalIsLoading) return <div>Loading...</div>;
-    if (error) return <div>An error has occurred: + {error.message}</div>; 
-
-    
   return (
-    <div>
-       <div className="CheckBoxesPanel">
-        {CheckBoxRender(calTitles,checkBoxState,handleOnChange)}
-        </div>
-    <Paper>      
-      <Scheduler data={data}>
-        <ViewState
-          currentDate={currentDate}
-          onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}          
-        />
-        <EditingState          
-            onCommitChanges={(changes)=>commitChanges(changes)}            
-          />
-        <IntegratedEditing />
-        <DayView startDayHour={9} endDayHour={19} />
-        <ConfirmationDialog />
-        <Toolbar />
-        <DateNavigator />
-        <TodayButton />
-        <Appointments />
-        <AppointmentTooltip
-            showOpenButton
-            showDeleteButton
-          />
-          <AppointmentForm />
-      </Scheduler>
-    </Paper>  
-    </div>
+    <React.Fragment>
+      <Paper className="header">
+        {CalData?.map((calendar) => {
+          return (
+            <CheckBoxRender
+              key={calendar.calId}
+              calendar={calendar}
+              handleChanges={handleSelectedCalendars}
+            />
+          );
+        })}
+      </Paper>
+      <Paper className="content">
+        {isLoading || isFetching ? (
+          <PlaceHolder />
+        ) : (
+          <Scheduler data={data} height={660}>
+            <ViewState
+              currentDate={currentDate}
+              onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
+            />
+            <EditingState
+              onCommitChanges={(changes) => commitChanges(changes)}
+            />
+            <IntegratedEditing />
+            <DayView startDayHour={9} endDayHour={19} />
+            <ConfirmationDialog />
+            <Toolbar />
+            <DateNavigator />
+            <TodayButton />
+            <Appointments />
+            <AppointmentTooltip showOpenButton showDeleteButton />
+            <AppointmentForm
+              basicLayoutComponent={(props) => (
+                <BasicLayout {...props} calData={CalData} />
+              )}
+            />
+          </Scheduler>
+        )}
+      </Paper>
+    </React.Fragment>
   );
 }
