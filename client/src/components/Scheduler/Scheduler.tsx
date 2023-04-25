@@ -26,7 +26,8 @@ import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
-import { Box } from "@mui/material";
+import { Button } from "@mui/material";
+import { OpenFavsWindow } from "../UtilityComponents/FavoritesPickWindowComponent";
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
@@ -34,6 +35,15 @@ export function DevScheduler() {
   const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(
     []
   );
+
+  const [favsWinOpen, setFavsWinOpen] = React.useState(false);
+  const handleFavsWinOpen = () => {
+    setFavsWinOpen(true);   
+  };
+  const handleFavsWinClose = () => {
+    setFavsWinOpen(false);
+  };
+
 
   const {
     isLoading: CalIsLoading,
@@ -114,7 +124,21 @@ export function DevScheduler() {
             />
           );
         })}
+        
       </Paper>
+      <Paper className="FavButton">
+      {      
+        <Button 
+        variant="outlined"
+        onClick={handleFavsWinOpen}
+        >
+          FavCals    
+        </Button>
+      }      
+      </Paper>
+      
+      {OpenFavsWindow(favsWinOpen,handleFavsWinClose)}
+  
       <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />
