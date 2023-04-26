@@ -64,9 +64,13 @@ export function DevScheduler() {
       setSelectedFavCalendars([...selectedFavCalendars, calendar.calId]);      
     } else {
       setSelectedFavCalendars(
-        selectedFavCalendars.filter((cal) => cal !== calendar.calId)
+        selectedFavCalendars.filter((cal) => cal !== calendar.calId)        
       );
+      setSelectedCalendars(
+        selectedCalendars.filter((cal) => cal !== calendar.calId)        
+      );    
     } 
+
     
   };
 
@@ -143,7 +147,8 @@ export function DevScheduler() {
     <React.Fragment>
       <Paper className="header">
         {CalData?.map((calendar) => {  
-          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false        
+          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false  
+          if(selectedFavCalendars.indexOf(calendar.calId)>-1)       
           return (
             <CheckBoxRender
               key={calendar.calId}
