@@ -10,11 +10,11 @@ interface ICheckBoxParams {
 
 export function CheckBoxRender(params: ICheckBoxParams) {
 
-  let contr=<Checkbox />
+  let chkd=false
   if(params.fromFavsWindow)    
-    params.calendar.checkedFav==true?contr=<Checkbox checked/>:contr=<Checkbox />
+    params.calendar.checkedFav==true?chkd=true:chkd=false
   else
-    params.calendar.checkedBase==true?contr=<Checkbox checked/>:contr=<Checkbox />
+    params.calendar.checkedBase==true?chkd=true:chkd=false
 
   return (
     <Box>
@@ -25,7 +25,9 @@ export function CheckBoxRender(params: ICheckBoxParams) {
           onChange={(event: any) => {
             params.handleChanges(params.calendar,  event.target.checked)            
             }}
-          control={contr}   
+          control=<Checkbox 
+          checked={chkd}
+          />  
        />   
       </Box>
     </Box>
