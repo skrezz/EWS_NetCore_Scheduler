@@ -4,17 +4,11 @@ import { useState } from "react";
 
 interface ICheckBoxParams {
   calendar: ICalendar;
-  fromFavsWindow:boolean,
+  checked:boolean;
   handleChanges(calendar: ICalendar, checked: boolean): void;
 }
 
 export function CheckBoxRender(params: ICheckBoxParams) {
-
-  let chkd=false
-  if(params.fromFavsWindow)    
-    params.calendar.checkedFav==true?chkd=true:chkd=false
-  else
-    params.calendar.checkedBase==true?chkd=true:chkd=false
 
   return (
     <Box>
@@ -26,7 +20,7 @@ export function CheckBoxRender(params: ICheckBoxParams) {
             params.handleChanges(params.calendar,  event.target.checked)            
             }}
           control=<Checkbox 
-          checked={chkd}
+          checked={params.checked}          
           />  
        />   
       </Box>

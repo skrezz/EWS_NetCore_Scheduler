@@ -26,9 +26,20 @@ import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
-import { Button } from "@mui/material";
-import { OpenFavsWindow } from "../UtilityComponents/FavoritesPickWindowComponent";
+import { Box, Button, Modal } from "@mui/material";
 import { json } from "stream/consumers";
+
+const styleFavsWindow = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
@@ -142,18 +153,19 @@ export function DevScheduler() {
         {error === null ? CalError!.message : error!.message}
       </div>
     );
-
+const CalDataBase =CalData?.filter((calendar)=>{
+return selectedFavCalendars.indexOf(calendar.calId)>-1
+})
   return (
     <React.Fragment>
       <Paper className="header">
-        {CalData?.map((calendar) => {  
-          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false  
-          if(selectedFavCalendars.indexOf(calendar.calId)>-1)       
+        {CalDataBase?.map((calendar) => {  
+          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false                 
           return (
             <CheckBoxRender
               key={calendar.calId}
-              calendar={calendar}
-              fromFavsWindow={false}
+              calendar={calendar}   
+              checked={calendar.checkedBase}          
               handleChanges={handleSelectedCalendars}
             />
           );
@@ -166,13 +178,33 @@ export function DevScheduler() {
         variant="outlined"
         onClick={handleFavsWinOpen}
         >
-          FavCals    
+          Избранные календари   
         </Button>
       }      
       </Paper>
+      <Paper className="FavsWindow">
+            <Modal
+            open={favsWinOpen}
+            onClose={handleFavsWinClose}
+            aria-labelledby="parent-modal-title"
+            aria-describedby="parent-modal-description"
+            >            
+                <Box sx={{ ...styleFavsWindow, width: 400 }}>
+                    {CalData?.map((calendar:any) => {
+                        selectedFavCalendars.indexOf(calendar.calId)>-1?calendar.checkedFav=true:calendar.checkedFav=false
+                    return (
+                        <CheckBoxRender
+                        key={calendar.calId}
+                        calendar={calendar}   
+                        checked={calendar.checkedFav}                                         
+                        handleChanges={handleSelectedFavCalendars}                        
+                        />
+                    );
+                    })}
+                </Box>
+            </Modal>
+         </Paper>
       
-      {OpenFavsWindow(CalData,selectedFavCalendars,favsWinOpen,handleFavsWinClose,handleSelectedFavCalendars)}
-  
       <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />
