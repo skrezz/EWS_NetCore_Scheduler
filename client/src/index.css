@@ -39,3 +39,13 @@ body {
   height: calc(100vh - 60px); /* Высота контента равна 100% минус высота Header и Footer */
   width: 100%;
 }
+.FavButton{ 
+  position: fixed;
+  top: 10px;
+  left: 20px;  
+  background-color: #f1f1f1; /* Цвет фона Header */
+  z-index: 10; /* Поднять Header над контентом */
+  display: flex;
+  justify-content: left;
+  align-items: center;  
+}

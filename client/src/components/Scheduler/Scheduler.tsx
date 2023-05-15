@@ -26,14 +26,74 @@ import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
-import { Box } from "@mui/material";
+import { Box, Button, Modal } from "@mui/material";
+import { json } from "stream/consumers";
+
+const styleFavsWindow = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
 
-  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(
-    []
-  );
+  const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(() => {
+    const stickyValue = localStorage.getItem('SelectedBaseCals');
+    return stickyValue !== null
+      ? JSON.parse(stickyValue)
+      : [];
+  })
+
+  const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
+    if (checked) {
+      setSelectedCalendars([...selectedCalendars, calendar.calId]);      
+    }
+    else {
+      setSelectedCalendars(
+        selectedCalendars.filter((cal) => cal !== calendar.calId)        
+      );      
+    }   
+    
+  };
+
+  const [selectedFavCalendars, setSelectedFavCalendars] = React.useState<string[]>(() => {
+    const stickyValue = localStorage.getItem('SelectedFavCals');
+    return stickyValue !== null
+      ? JSON.parse(stickyValue)
+      : [];
+  })
+
+  const handleSelectedFavCalendars = (calendar: ICalendar, checked: boolean) => {
+    if (checked) {
+      setSelectedFavCalendars([...selectedFavCalendars, calendar.calId]);      
+    } else {
+      setSelectedFavCalendars(
+        selectedFavCalendars.filter((cal) => cal !== calendar.calId)        
+      );
+      setSelectedCalendars(
+        selectedCalendars.filter((cal) => cal !== calendar.calId)        
+      );    
+    } 
+
+    
+  };
+
+  const [favsWinOpen, setFavsWinOpen] = React.useState(false);
+  const handleFavsWinOpen = () => {
+    setFavsWinOpen(true);   
+  };
+  const handleFavsWinClose = () => {
+    localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
+    setFavsWinOpen(false);
+  };
+
 
   const {
     isLoading: CalIsLoading,
@@ -51,15 +111,7 @@ export function DevScheduler() {
   //Post/change/delete Appos
   const postAppoinment = usePostAppo();
 
-  const handleSelectedCalendars = (calendar: ICalendar, checked: boolean) => {
-    if (checked) {
-      setSelectedCalendars([...selectedCalendars, calendar.calId]);
-    } else {
-      setSelectedCalendars(
-        selectedCalendars.filter((cal) => cal !== calendar.calId)
-      );
-    }
-  };
+  
   
   function commitChanges(changes: ChangeSet) {
     let appoTmp: AppointmentModel = {
@@ -101,20 +153,58 @@ export function DevScheduler() {
         {error === null ? CalError!.message : error!.message}
       </div>
     );
-
+const CalDataBase =CalData?.filter((calendar)=>{
+return selectedFavCalendars.indexOf(calendar.calId)>-1
+})
   return (
     <React.Fragment>
       <Paper className="header">
-        {CalData?.map((calendar) => {
+        {CalDataBase?.map((calendar) => {  
+          selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false                 
           return (
             <CheckBoxRender
               key={calendar.calId}
-              calendar={calendar}
+              calendar={calendar}   
+              checked={calendar.checkedBase}          
               handleChanges={handleSelectedCalendars}
             />
           );
         })}
+        
       </Paper>
+      <Paper className="FavButton">
+      {      
+        <Button 
+        variant="outlined"
+        onClick={handleFavsWinOpen}
+        >
+          Избранные календари   
+        </Button>
+      }      
+      </Paper>
+      <Paper className="FavsWindow">
+            <Modal
+            open={favsWinOpen}
+            onClose={handleFavsWinClose}
+            aria-labelledby="parent-modal-title"
+            aria-describedby="parent-modal-description"
+            >            
+                <Box sx={{ ...styleFavsWindow, width: 400 }}>
+                    {CalData?.map((calendar:any) => {
+                        selectedFavCalendars.indexOf(calendar.calId)>-1?calendar.checkedFav=true:calendar.checkedFav=false
+                    return (
+                        <CheckBoxRender
+                        key={calendar.calId}
+                        calendar={calendar}   
+                        checked={calendar.checkedFav}                                         
+                        handleChanges={handleSelectedFavCalendars}                        
+                        />
+                    );
+                    })}
+                </Box>
+            </Modal>
+         </Paper>
+      
       <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />
