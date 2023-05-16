@@ -30,12 +30,15 @@ namespace EWS_NetCore_Scheduler.Service
 
             return service;
         }
-        public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate)
+        public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate,string endDate)
         {
             IEWSActing EWS = new EWSs();
             //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
             ItemView iView = new ItemView(200);
-            SearchFilter searchFilter = new SearchFilter.IsGreaterThanOrEqualTo(AppointmentSchema.Start, DateTime.Parse(startDate));
+            SearchFilter greaterthanfilter = new SearchFilter.IsGreaterThanOrEqualTo(ItemSchema.DateTimeReceived, DateTime.Parse(startDate));
+            SearchFilter lessthanfilter = new SearchFilter.IsLessThanOrEqualTo(ItemSchema.DateTimeReceived, DateTime.Parse(endDate));
+            SearchFilter searchFilter = new SearchFilter.SearchFilterCollection(LogicalOperator.And, greaterthanfilter, lessthanfilter);
+            //SearchFilter searchFilter = new SearchFilter.IsGreaterThanOrEqualTo(AppointmentSchema.Start, DateTime.Parse(startDate));
 
             //View.date
             // Limit the properties returned to the appointment's subject, start time, and end time.
