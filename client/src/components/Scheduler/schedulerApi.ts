@@ -11,19 +11,20 @@ const API_BASE_URL = "http://localhost:5152/EWSApiScheduler";
 export const useGetAppos = (
   currentDate: Date,
   calIds: string[] | undefined,
+  currentViewState:string,
   CalIsLoading: boolean
   //changesCommited: number
 ) => {
   localStorage.setItem('SelectedBaseCals',JSON.stringify(calIds)) 
   return useQuery<AppointmentModel[], Error>(
-    ['appointmentData', calIds,currentDate],
-    () => getAppos(currentDate, calIds!),
+    ['appointmentData', calIds,currentDate,currentViewState],
+    () => getAppos(currentDate, calIds!,currentViewState),
     { enabled: CalIsLoading,refetchOnWindowFocus: false}
   );
 };
-const getAppos = async (currentDate: Date, calIds: string[]) => {
+const getAppos = async (currentDate: Date, calIds: string[],currentViewState:string) => {
   const response = await axios.post(
-    `${API_BASE_URL}/GetAppos?startD=${currentDate.toISODate()}`,
+    `${API_BASE_URL}/GetAppos?startD=${currentDate.toISODate()}&currentViewState=${currentViewState}`,
     calIds
   );
   return response.data;

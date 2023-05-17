@@ -19,6 +19,9 @@ import {
   Toolbar,
   DateNavigator,
   TodayButton,
+  WeekView,
+  MonthView,
+  ViewSwitcher,
 } from "@devexpress/dx-react-scheduler-material-ui";
 
 import { useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
@@ -43,7 +46,7 @@ const styleFavsWindow = {
 
 export function DevScheduler() {
   const [currentDate, setCurrentDate] = React.useState(new Date());
-
+  const [currentViewState, setCurrentViewState] = React.useState("Month");
   const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(() => {
     const stickyValue = localStorage.getItem('SelectedBaseCals');
     return stickyValue !== null
@@ -105,6 +108,7 @@ export function DevScheduler() {
   const { isLoading, error, data, isFetching } = useGetAppos(
     currentDate,
     selectedCalendars,
+    currentViewState,
     !CalIsLoading
   );
 
@@ -213,16 +217,21 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
             <ViewState
               currentDate={currentDate}
               onCurrentDateChange={(currentDate) => setCurrentDate(currentDate)}
+              onCurrentViewNameChange={(currentViewState) => setCurrentViewState(currentViewState)}
+              currentViewName={currentViewState}              
             />
             <EditingState
               onCommitChanges={(changes) => commitChanges(changes)}
             />
             <IntegratedEditing />
             <DayView startDayHour={9} endDayHour={19} />
+            <WeekView startDayHour={9} endDayHour={19}/>
+            <MonthView />
             <ConfirmationDialog />
             <Toolbar />
             <DateNavigator />
             <TodayButton />
+            <ViewSwitcher />
             <Appointments />
             <AppointmentTooltip showOpenButton showDeleteButton />
             <AppointmentForm

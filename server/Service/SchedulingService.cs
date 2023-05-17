@@ -14,7 +14,7 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public interface ISchedulingService
     {
-        JsonResult GetAppos(string[] CalendarIds, string startD);
+        JsonResult GetAppos(string[] CalendarIds, string startD, string currentViewState);
         string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
         string PostAppo(JsonElement JSPostAppo);
         string PostOrEditAppo(ExchangeService service, Appointment[] newAppos,string calId);
@@ -36,7 +36,7 @@ namespace EWS_NetCore_Scheduler.Service
             return "deleted";
         }
 
-        public JsonResult GetAppos(string[] CalendarIds, string startDate)
+        public JsonResult GetAppos(string[] CalendarIds, string startDate, string currentViewState)
         {
             int calCounter = 0;
             
@@ -66,10 +66,30 @@ namespace EWS_NetCore_Scheduler.Service
                     jk++;
                 }
             }
+            string endDate = "";
+            DateTime CurDate = DateTime.Parse(startDate);           
+            switch (currentViewState)
+            {
+                case "Month":
+                    DateTime dtTemp = new DateTime(CurDate.Year, CurDate.Month, 1);
+                    startDate = dtTemp.ToShortDateString();
+                    endDate = dtTemp.AddMonths(1).AddSeconds(-1).ToShortDateString();
+                    break;                
+                case "Week":
+                    startDate = CurDate.AddDays(-(int)CurDate.DayOfWeek + 1).Date.ToShortDateString();
+                    endDate= CurDate.AddDays(7-(int)CurDate.DayOfWeek).Date.ToShortDateString();
+                    break;
+                case "Day":
+                    startDate = CurDate.AddHours(-1).Date.ToShortDateString();
+                    endDate = CurDate.AddHours(25).Date.ToShortDateString();
+                    break;
+            }
+
+            
             IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
             // Set the start and end time and number of appointments to retrieve.
-            Apps[] appointmentsTMP = EWS.FindAppointments(service, trueCals, startDate);
+            Apps[] appointmentsTMP = EWS.FindAppointments(service, trueCals, startDate,endDate);
             Appointment[] appointments = new Appointment[appointmentsTMP.Length];
             for (int iAp=0; iAp < appointmentsTMP.Length; iAp++)
             {
