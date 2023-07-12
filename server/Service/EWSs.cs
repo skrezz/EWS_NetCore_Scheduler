@@ -1,7 +1,5 @@
 ﻿using EWS_NetCore_Scheduler.Interfaces;
 using EWS_NetCore_Scheduler.Models;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
 using System.Globalization;
@@ -14,6 +12,7 @@ namespace EWS_NetCore_Scheduler.Service
     {
         public WebCredentials getWebCreds()
         {
+
             string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
             string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
 
@@ -23,17 +22,11 @@ namespace EWS_NetCore_Scheduler.Service
         }
         public ExchangeService CrEwsService()
         {
-            
-            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016,TimeZoneInfo.Utc)
-            {
-                UseDefaultCredentials = true,
-                //Credentials = getWebCreds();
-            TraceEnabled = true,
-            TraceFlags = TraceFlags.All,
-            Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx")
-
-            }; 
-           
+            ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016,TimeZoneInfo.Utc);
+            service.Credentials = getWebCreds();
+            service.TraceEnabled = true;
+            service.TraceFlags = TraceFlags.All;
+            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
 
             return service;
         }
