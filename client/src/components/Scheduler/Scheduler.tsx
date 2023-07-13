@@ -24,13 +24,15 @@ import {
   ViewSwitcher,
 } from "@devexpress/dx-react-scheduler-material-ui";
 
-import { useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
+import { authStart, useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
 import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
-import { Box, Button, Modal } from "@mui/material";
+import { Box, Button, Modal, TextField } from "@mui/material";
 import { json } from "stream/consumers";
+import { useRef } from "react";
+
 
 const styleFavsWindow = {
   position: 'absolute' as 'absolute',
@@ -42,11 +44,24 @@ const styleFavsWindow = {
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
+  m:1,
 };
 
 export function DevScheduler() {
+  //стейты логина и пароля
+  const [lgn, setLgn] = React.useState("");
+  const handleLgnChange = (lgnValue:string) => { 
+    setLgn(lgnValue);      
+    }
+  const [pwd, setPwd] = React.useState("");
+  const handlePwdChange = (pwdValue:string) => { 
+    setPwd(pwdValue);      
+      }
+  //дата
   const [currentDate, setCurrentDate] = React.useState(new Date());
+  //вид
   const [currentViewState, setCurrentViewState] = React.useState("Month");
+  //выбранные календари
   const [selectedCalendars, setSelectedCalendars] = React.useState<string[]>(() => {
     const stickyValue = localStorage.getItem('SelectedBaseCals');
     return stickyValue !== null
@@ -96,6 +111,14 @@ export function DevScheduler() {
     localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
     setFavsWinOpen(false);
   };
+  //это временно - удалить в конце
+  const [authWinOpen, setAuthWinOpen] = React.useState(false);
+  const handleAuthWinOpen = () => {
+    setAuthWinOpen(true);   
+  };
+  const handleAuthWinClose = () => {   
+    setAuthWinOpen(false);
+  }; 
 
 
   const {
@@ -208,6 +231,54 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
                 </Box>
             </Modal>
          </Paper>
+         <Paper className="AuthButton">
+      {      
+        <Button 
+        variant="outlined"
+        onClick={handleAuthWinOpen}
+        >
+          auth   
+        </Button>
+      }      
+      </Paper>
+         <Paper className="AuthWindow">
+            <Modal
+            open={authWinOpen}   
+            onClose={handleAuthWinClose}         
+            aria-labelledby="parent-modal-title"
+            aria-describedby="parent-modal-description"
+            >
+              <Box sx={{ ...styleFavsWindow, width: 400 }}>
+              <div>
+              
+              <TextField  fullWidth                  
+                 id="standard-login"
+                 label="Логин"
+                 type="login"
+                 variant="standard"
+                 margin="dense"
+                 onChange={(e)=>handleLgnChange(e.target.value)}
+              /> 
+              <TextField fullWidth            
+                id="standard-password-input"
+                label="Пароль"
+                type="password"                
+                variant="standard"
+                margin="dense"
+                onChange={(e)=>handlePwdChange(e.target.value)}
+              />
+              </div>
+              <Button 
+              variant="outlined"
+              //onClick={()=>console.log("log: "+loginRef.current)}
+              onClick={()=>authStart(lgn,pwd)}
+              >
+                ok   
+              </Button>
+              </Box>
+            </Modal>
+         </Paper>
+
       
       <Paper className="content">
         {isLoading || isFetching ? (

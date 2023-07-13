@@ -46,8 +46,6 @@ export const useCalendars = () => {
   return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {refetchOnWindowFocus: false});
 }
 
-
-
 export const usePostAppo = () => {
   const queryClient = useQueryClient();
   return useMutation(postAppo, {
@@ -56,3 +54,12 @@ export const usePostAppo = () => {
     },
   });
 };
+
+//auth
+export const authStart=async(
+  Log:string,
+  Pass:string
+)=>{
+  const response = await axios.post(`${API_BASE_URL}/PostAppos`, [Log,Pass]);
+  return response.data;
+}
