@@ -1,11 +1,7 @@
 import { AppointmentModel } from "@devexpress/dx-react-scheduler";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { ICalendar } from "../Support/Models";
-
-const API_BASE_URL = "http://localhost:5152/EWSApiScheduler";
-
-
+import { API_BASE_URL, ICalendar } from "../Support/Models";
 
 //get appos
 export const useGetAppos = (

@@ -42,6 +42,12 @@ namespace EWS_NetCore_Scheduler.Controllers
             JsonResult test = new JsonResult(Cals.GetCals());
             return new JsonResult(Cals.GetCals());
         }
+        [HttpPost("RegUser")]
+        public string RegUser(JsonElement JSPullAppo)
+        {
+            AuthService Auth = new AuthService();
+            return Auth.RegUser(JSPullAppo);
+        }
 
 
     }

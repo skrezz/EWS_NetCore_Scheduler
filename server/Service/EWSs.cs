@@ -1,4 +1,5 @@
-﻿using EWS_NetCore_Scheduler.Interfaces;
+﻿using EWS_NetCore_Scheduler.data;
+using EWS_NetCore_Scheduler.Interfaces;
 using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
@@ -17,6 +18,7 @@ namespace EWS_NetCore_Scheduler.Service
             string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
 
             if (ews_user == null || ews_pwd == null) throw new ArgumentNullException("User or password is not provided");
+       
             return new WebCredentials(ews_user, ews_pwd);
 
         }
@@ -27,7 +29,10 @@ namespace EWS_NetCore_Scheduler.Service
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
-
+            if (Globs.ExCre == null)
+                Globs.ExCre = new Dictionary<string, ExchangeCredentials>();
+            //List<ExchangeCredentials> ExCret = new List<ExchangeCredentials>();
+            //Globs.ExCre.Add("dania",service.Credentials);
             return service;
         }
         public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate,string endDate)
@@ -101,6 +106,7 @@ namespace EWS_NetCore_Scheduler.Service
             
             IEWSActing EWS = new EWSs();
             ExchangeService service = CrEwsService();
+            
             FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.Calendar,new FolderView(1000));
             Cal[] Calendars = new Cal[ffr.Folders.Count + 1];
             for (int i=1;i< Calendars.Length;i++)

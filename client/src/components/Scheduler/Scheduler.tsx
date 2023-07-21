@@ -32,6 +32,7 @@ import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { json } from "stream/consumers";
 import { useRef } from "react";
+import { RegUser } from "./AuthApi";
 
 
 const styleFavsWindow = {
@@ -80,7 +81,7 @@ export function DevScheduler() {
     }   
     
   };
-
+  //для окна изброанных календарей
   const [selectedFavCalendars, setSelectedFavCalendars] = React.useState<string[]>(() => {
     const stickyValue = localStorage.getItem('SelectedFavCals');
     return stickyValue !== null
@@ -98,11 +99,9 @@ export function DevScheduler() {
       setSelectedCalendars(
         selectedCalendars.filter((cal) => cal !== calendar.calId)        
       );    
-    } 
-
-    
+    }     
   };
-
+  //стейты для открытия окна избранных календарей
   const [favsWinOpen, setFavsWinOpen] = React.useState(false);
   const handleFavsWinOpen = () => {
     setFavsWinOpen(true);   
@@ -111,6 +110,7 @@ export function DevScheduler() {
     localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
     setFavsWinOpen(false);
   };
+  
   //это временно - удалить в конце
   const [authWinOpen, setAuthWinOpen] = React.useState(false);
   const handleAuthWinOpen = () => {
@@ -271,7 +271,7 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
               <Button 
               variant="outlined"
               //onClick={()=>console.log("log: "+loginRef.current)}
-              onClick={()=>authStart(lgn,pwd)}
+              onClick={()=>RegUser(lgn,pwd)}
               >
                 ok   
               </Button>

@@ -5,6 +5,7 @@ using EWS_NetCore_Scheduler.Service;
 using Microsoft.AspNetCore.SignalR.Protocol;
 using Microsoft.Exchange.WebServices.Data;
 using EWS_NetCore_Scheduler.Interfaces;
+using EWS_NetCore_Scheduler.data;
 using System.Text.Json.Nodes;
 using System.Security.Cryptography.Xml;
 using System.Globalization;
@@ -88,6 +89,10 @@ namespace EWS_NetCore_Scheduler.Service
             
             IEWSActing EWS = _EWSActing;
             ExchangeService service = EWS.CrEwsService();
+            
+           
+            //ExCret.Add(service.Credentials);
+            //Globs.ExCre.Add(service.Credentials);            
             // Set the start and end time and number of appointments to retrieve.
             Apps[] appointmentsTMP = EWS.FindAppointments(service, trueCals, startDate,endDate);
             Appointment[] appointments = new Appointment[appointmentsTMP.Length];
