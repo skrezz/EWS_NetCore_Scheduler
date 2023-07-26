@@ -16,12 +16,19 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public interface IAuthService
     {
-        string RegUser(JsonElement userData);
-        void AccessTokenCreate(JsonElement userData);
+        JsonResult RegUser(JsonElement userData);
+        string LogUser();
+        JsonResult AccessTokenCreate(JsonElement userData);
     }
     public class AuthService : IAuthService
     {
-        public void AccessTokenCreate(JsonElement userData)
+        public const string iss = "IAD_EWS_Server"; // издатель токена
+        public const string aud = "IAD_EWS_Client"; // потребитель токена
+        const string ssKey = "superSecureKeyThatmaybe!_needtoBeChanged?-When(I)willUnderstandsHowtodo_it_BETTER";   // ключ для шифрации
+        public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ssKey));
+
+        public JsonResult AccessTokenCreate(JsonElement userData)
         {
             var uCreds = JsonObject.Parse(userData.ToString());
             string lgn = uCreds[0].ToString();
@@ -29,20 +36,31 @@ namespace EWS_NetCore_Scheduler.Service
             IEWSActing EWS = new EWSs();
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, lgn) };
             var jwt = new JwtSecurityToken(
-                issuer: "back",
-                audience: "front",
+                issuer: iss,
+                audience: aud,
                 claims: claims,
                 expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
-                signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(pwd)), SecurityAlgorithms.HmacSha256)
+                signingCredentials: new SigningCredentials(GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
                 );
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-            // ExchangeService service = EWS.CrEwsService(lgn,pwd);
+            var response = new
+            {
+                access_token = encodedJwt,
+                login = lgn
+            };
+
+            return new JsonResult(response);
         }
 
-        public string RegUser(JsonElement userData)
+        public string LogUser()
         {
-            AccessTokenCreate(userData);
-            return "";
+            throw new NotImplementedException();
+        }
+
+        public JsonResult RegUser(JsonElement userData)
+        {
+            
+            return AccessTokenCreate(userData);
         }
     }
 }

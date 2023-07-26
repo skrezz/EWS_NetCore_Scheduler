@@ -13,15 +13,7 @@ using System.Runtime.Intrinsics.X86;
 
 namespace EWS_NetCore_Scheduler.Service
 {
-    public interface ISchedulingService
-    {
-        JsonResult GetAppos(string[] CalendarIds, string startD, string currentViewState);
-        string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem);
-        string PostAppo(JsonElement JSPostAppo);
-        string PostOrEditAppo(ExchangeService service, Appointment[] newAppos,string calId);
-        string DelAppo(string id);
-        Cal[] GetCals();
-    }
+
     public class SchedulingService: ISchedulingService
     {
         private readonly IEWSActing _EWSActing;

@@ -1,6 +1,8 @@
 using EWS_NetCore_Scheduler.Interfaces;
 using EWS_NetCore_Scheduler.Models;
 using EWS_NetCore_Scheduler.Service;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Exchange.WebServices.Data;
 using System.Globalization;
@@ -43,10 +45,17 @@ namespace EWS_NetCore_Scheduler.Controllers
             return new JsonResult(Cals.GetCals());
         }
         [HttpPost("RegUser")]
-        public string RegUser(JsonElement JSPullAppo)
+        public JsonResult RegUser(JsonElement JSPullAppo)
         {
             AuthService Auth = new AuthService();
             return Auth.RegUser(JSPullAppo);
+        }
+        [HttpPost("LogUser")] 
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public string LogUser(JsonElement JSPullAppo)
+        {
+            //AuthService Auth = new AuthService();
+            return "congrats";
         }
 
 

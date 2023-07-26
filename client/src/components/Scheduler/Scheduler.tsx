@@ -32,7 +32,7 @@ import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { json } from "stream/consumers";
 import { useRef } from "react";
-import { RegUser } from "./AuthApi";
+import { RegUser,LogUser } from "./AuthApi";
 
 
 const styleFavsWindow = {
@@ -273,7 +273,14 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
               //onClick={()=>console.log("log: "+loginRef.current)}
               onClick={()=>RegUser(lgn,pwd)}
               >
-                ok   
+               ok   
+              </Button>
+              <Button 
+              variant="outlined"
+              //onClick={()=>console.log("log: "+loginRef.current)}
+              onClick={()=>LogUser()}
+              >
+               testToken   
               </Button>
               </Box>
             </Modal>
