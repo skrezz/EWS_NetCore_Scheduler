@@ -21,15 +21,16 @@ namespace EWS_NetCore_Scheduler.Service
         {
             _EWSActing = EWS;
         }
-        public string DelAppo(string id)
-        {            
-            ExchangeService service = _EWSActing.CrEwsService();
+        public string DelAppo(string id,string userLogin)
+        {
+            IAuthService Auth = new AuthService();
+            ExchangeService service = Auth.getService(userLogin);
             Appointment delAppo = _EWSActing.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
             _EWSActing.EWSDelAppo(delAppo);
             return "deleted";
         }
 
-        public JsonResult GetAppos(string[] CalendarIds, string startDate, string currentViewState)
+        public JsonResult GetAppos(string[] CalendarIds, string startDate, string currentViewState, string userLogin)
         {
             int calCounter = 0;
             
@@ -80,7 +81,8 @@ namespace EWS_NetCore_Scheduler.Service
 
             
             IEWSActing EWS = _EWSActing;
-            ExchangeService service = EWS.CrEwsService();
+            IAuthService Auth = new AuthService();
+            ExchangeService service = Auth.getService(userLogin);
             
            
             //ExCret.Add(service.Credentials);
@@ -137,11 +139,11 @@ namespace EWS_NetCore_Scheduler.Service
             }
         }
 
-        public Cal[] GetCals()
+        public Cal[] GetCals(string userLogin)
         {
             IEWSActing EWS = new EWSs();
 
-            return EWS.GetCals();
+            return EWS.GetCals(userLogin);
         }
 
         public string[] GetRelatedRecurrenceCalendarItems(ExchangeService service, Appointment calendarItem)
@@ -204,7 +206,7 @@ namespace EWS_NetCore_Scheduler.Service
             return rrule;
         }
 
-        public string PostAppo(JsonElement JSPostAppo)
+        public string PostAppo(JsonElement JSPostAppo,string userLogin)
         {
             //Deserialise json to array of JsonObject[] 
             var items = JsonObject.Parse(JSPostAppo.ToString());
@@ -229,7 +231,9 @@ namespace EWS_NetCore_Scheduler.Service
             int j = 0;
             //creating or editing appointments
             IEWSActing EWS = new EWSs();
-            ExchangeService service = EWS.CrEwsService();
+            IAuthService Auth = new AuthService();
+
+            ExchangeService service = Auth.getService(userLogin);
             string calId = "";
             foreach(JsonObject jso in JsObjs)
             {
@@ -271,7 +275,7 @@ namespace EWS_NetCore_Scheduler.Service
                 }
                 else if(jso["title"]!=null&& jso["title"].ToString()== "deleteIt")
                 {
-                    DelAppo(jso["id"].ToString());
+                    DelAppo(jso["id"].ToString(),userLogin);
                 }
                 else
                 {

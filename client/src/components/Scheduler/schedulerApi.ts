@@ -3,13 +3,13 @@ import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { API_BASE_URL, ICalendar } from "../Support/Models";
 
+
 //get appos
 export const useGetAppos = (
   currentDate: Date,
   calIds: string[] | undefined,
   currentViewState:string,
   CalIsLoading: boolean
-  //changesCommited: number
 ) => {
   localStorage.setItem('SelectedBaseCals',JSON.stringify(calIds)) 
   return useQuery<AppointmentModel[], Error>(
@@ -34,12 +34,16 @@ const postAppo = async (Appo: AppointmentModel) => {
 
 //get Calendars
 const getCalendars = async () : Promise<ICalendar[]> => {
-  const response = await axios.get(`${API_BASE_URL}/GetCalendars`);
+  axios.defaults.headers.post['Authorization'] = "Bearer "+sessionStorage.getItem('accessToken');
+  const response = await axios.post(`${API_BASE_URL}/GetCalendars`,sessionStorage.getItem('userLogin'));
+  
   return response.data;
 };
 
-export const useCalendars = () => {
-  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {refetchOnWindowFocus: false});
+export const useCalendars = (
+  LogIsLoading:boolean
+) => {
+  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {enabled: LogIsLoading,refetchOnWindowFocus: false});
 }
 
 export const usePostAppo = () => {

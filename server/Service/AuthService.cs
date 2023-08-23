@@ -5,12 +5,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EWS_NetCore_Scheduler.Interfaces;
+using EWS_NetCore_Scheduler.data;
 using System.Security.Claims;
 using System;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using System.Text;
+
 
 namespace EWS_NetCore_Scheduler.Service
 {
@@ -19,6 +21,8 @@ namespace EWS_NetCore_Scheduler.Service
         JsonResult RegUser(JsonElement userData);
         string LogUser();
         JsonResult AccessTokenCreate(JsonElement userData);
+        bool RegCheck(string uLogin);
+        ExchangeService getService(string uLogin);
     }
     public class AuthService : IAuthService
     {
@@ -32,8 +36,16 @@ namespace EWS_NetCore_Scheduler.Service
         {
             var uCreds = JsonObject.Parse(userData.ToString());
             string lgn = uCreds[0].ToString();
-            string pwd = uCreds[1].ToString();
-            IEWSActing EWS = new EWSs();
+            //проверяем не регался ли пользователь ранее
+            if (!RegCheck(lgn))
+            {
+                var alreadyReg = new
+                {
+                    answr = "Allready registered"
+                };
+                return new JsonResult(alreadyReg);
+            }             
+            //Создаем токен
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, lgn) };
             var jwt = new JwtSecurityToken(
                 issuer: iss,
@@ -48,13 +60,42 @@ namespace EWS_NetCore_Scheduler.Service
                 access_token = encodedJwt,
                 login = lgn
             };
+            //создаем сервис
+            IEWSActing EWS = new EWSs();
+            string pwd = uCreds[1].ToString();
+            EWS.CrEwsService(lgn, pwd);
 
             return new JsonResult(response);
+        }
+
+        public ExchangeService getService(string uLogin)
+        {
+            foreach (KeyValuePair<string, ExchangeService> uCred in Globs.ExCre)
+            {
+                if (uCred.Key.Equals(uLogin))
+                {
+                    return uCred.Value;
+                }
+            }
+            return new ExchangeService(ExchangeVersion.Exchange2016, TimeZoneInfo.Utc); ;
         }
 
         public string LogUser()
         {
             throw new NotImplementedException();
+        }
+
+        public bool RegCheck(string uLogin)
+        {
+            if(Globs.ExCre!=null)
+            foreach (KeyValuePair<string, ExchangeService> uCred in Globs.ExCre)
+            {
+                if(uCred.Key.Equals(uLogin))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public JsonResult RegUser(JsonElement userData)

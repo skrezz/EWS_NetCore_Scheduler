@@ -32,7 +32,8 @@ import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { json } from "stream/consumers";
 import { useRef } from "react";
-import { RegUser,LogUser } from "./AuthApi";
+import { useLogUser } from "./AuthApi";
+
 
 
 const styleFavsWindow = {
@@ -58,6 +59,15 @@ export function DevScheduler() {
   const handlePwdChange = (pwdValue:string) => { 
     setPwd(pwdValue);      
       }
+  //стейты для окна авторизации
+  const [authWinOpen, setAuthWinOpen] = React.useState(true);
+  const handleAuthWinOpen = () => {
+    setAuthWinOpen(true);   
+  };
+  const handleAuthWinClose = () => {   
+    setAuthWinOpen(false);
+  }; 
+
   //дата
   const [currentDate, setCurrentDate] = React.useState(new Date());
   //вид
@@ -110,24 +120,27 @@ export function DevScheduler() {
     localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
     setFavsWinOpen(false);
   };
-  
-  //это временно - удалить в конце
-  const [authWinOpen, setAuthWinOpen] = React.useState(false);
-  const handleAuthWinOpen = () => {
-    setAuthWinOpen(true);   
-  };
-  const handleAuthWinClose = () => {   
-    setAuthWinOpen(false);
-  }; 
 
-
+  let logPassed:boolean=false;
+  const {
+    isLoading: LogIsLoading,
+    error: LogError,
+    data: LogData,
+    status:LogStatus, 
+    isError:isLogError,
+  } = useLogUser();
+  if(!isLogError&&!LogIsLoading) logPassed=true;
+  console.log("logPassed-"+logPassed)
   const {
     isLoading: CalIsLoading,
     error: CalError,
     data: CalData,
+    status:CalStatus,    
     isPreviousData: calsNotChanging,
-  } = useCalendars();
-
+  } = useCalendars(logPassed);
+  /*console.log("CalData-"+CalData)
+  console.log("CalStatus-"+CalStatus)
+  console.log("CalError-"+CalError)*/
   const { isLoading, error, data, isFetching } = useGetAppos(
     currentDate,
     selectedCalendars,
@@ -172,14 +185,73 @@ export function DevScheduler() {
     }
   }
 
-  if (CalIsLoading) return <PlaceHolder />;
-  if (error || CalError)
+  if (CalIsLoading||LogIsLoading) return <PlaceHolder />;
+  if (error || CalError||LogError)
+  {
+    console.log("CalError!.message-"+CalError!.message)
+    if(LogError!.message.includes("code 401"))
+    {     
+      return (
+      <Paper className="AuthWindow">
+          <Modal
+          open={authWinOpen}   
+          onClose={handleAuthWinClose}         
+          aria-labelledby="parent-modal-title"
+          aria-describedby="parent-modal-description"
+          >
+            <Box sx={{ ...styleFavsWindow, width: 400 }}>
+            <div>
+            
+            <TextField  fullWidth                  
+              id="standard-login"
+              label="Логин"
+              type="login"
+              variant="standard"
+              margin="dense"
+              onChange={(e)=>handleLgnChange(e.target.value)}
+            /> 
+            <TextField fullWidth            
+              id="standard-password-input"
+              label="Пароль"
+              type="password"                
+              variant="standard"
+              margin="dense"
+              onChange={(e)=>handlePwdChange(e.target.value)}
+            />
+            </div>
+            <Button 
+            variant="outlined"
+            //onClick={()=>console.log("log: "+loginRef.current)}
+            onClick={()=>{   
+                              
+               //setAuthWinOpen(false); 
+               }
+            }
+            >
+            ok   
+            </Button>
+            <Button 
+            variant="outlined"
+            //onClick={()=>console.log("log: "+loginRef.current)}
+            //onClick={()=>useLogUser()}
+            >
+            testToken   
+            </Button>
+            </Box>
+          </Modal>
+      </Paper>
+      )
+      
+    }
     return (
       <div>
         An error has occurred: +{" "}
         {error === null ? CalError!.message : error!.message}
+        
       </div>
+     
     );
+  }
 const CalDataBase =CalData?.filter((calendar)=>{
 return selectedFavCalendars.indexOf(calendar.calId)>-1
 })
@@ -230,63 +302,7 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
                     })}
                 </Box>
             </Modal>
-         </Paper>
-         <Paper className="AuthButton">
-      {      
-        <Button 
-        variant="outlined"
-        onClick={handleAuthWinOpen}
-        >
-          auth   
-        </Button>
-      }      
-      </Paper>
-         <Paper className="AuthWindow">
-            <Modal
-            open={authWinOpen}   
-            onClose={handleAuthWinClose}         
-            aria-labelledby="parent-modal-title"
-            aria-describedby="parent-modal-description"
-            >
-              <Box sx={{ ...styleFavsWindow, width: 400 }}>
-              <div>
-              
-              <TextField  fullWidth                  
-                 id="standard-login"
-                 label="Логин"
-                 type="login"
-                 variant="standard"
-                 margin="dense"
-                 onChange={(e)=>handleLgnChange(e.target.value)}
-              /> 
-              <TextField fullWidth            
-                id="standard-password-input"
-                label="Пароль"
-                type="password"                
-                variant="standard"
-                margin="dense"
-                onChange={(e)=>handlePwdChange(e.target.value)}
-              />
-              </div>
-              <Button 
-              variant="outlined"
-              //onClick={()=>console.log("log: "+loginRef.current)}
-              onClick={()=>RegUser(lgn,pwd)}
-              >
-               ok   
-              </Button>
-              <Button 
-              variant="outlined"
-              //onClick={()=>console.log("log: "+loginRef.current)}
-              onClick={()=>LogUser()}
-              >
-               testToken   
-              </Button>
-              </Box>
-            </Modal>
-         </Paper>
-
-      
+         </Paper>  
       <Paper className="content">
         {isLoading || isFetching ? (
           <PlaceHolder />

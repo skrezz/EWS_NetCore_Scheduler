@@ -18,31 +18,32 @@ namespace EWS_NetCore_Scheduler.Controllers
         private readonly IEWSActing _EWSActing = new EWSs();
         
         [HttpPost("GetAppos")]
-        public JsonResult GetAppos(string startD, string currentViewState, string[] CalendarIds)
+        public JsonResult GetAppos(string startD, string currentViewState, string[] CalendarIds, string userLogin)
         {
             ISchedulingService ApposInfo = new SchedulingService(_EWSActing);            
             //JsonResult test = ApposInfo.GetAppos(CalendarIds, startD);
-            return ApposInfo.GetAppos(CalendarIds, startD, currentViewState);
+            return ApposInfo.GetAppos(CalendarIds, startD, currentViewState,userLogin);
         }
         [HttpPost("PostAppos")]
-        public string PostAppos(JsonElement JSPullAppo)
+        public string PostAppos(JsonElement JSPullAppo, string userLogin)
         {
             ISchedulingService PostAppo = new SchedulingService(_EWSActing);            
-            return PostAppo.PostAppo(JSPullAppo);
+            return PostAppo.PostAppo(JSPullAppo,userLogin);
         }
         [HttpGet("DelAppo")]
-        public string DelAppo(string id)
+        public string DelAppo(string id, string userLogin)
         {
             ISchedulingService appo= new SchedulingService(_EWSActing);            
-            return appo.DelAppo(id);
+            return appo.DelAppo(id,userLogin);
         }
 
-        [HttpGet("GetCalendars")]
-        public JsonResult GetCalendars()
+        [HttpPost("GetCalendars")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public JsonResult GetCalendars(string userLogin)
         {          
             ISchedulingService Cals = new SchedulingService(_EWSActing);
-            JsonResult test = new JsonResult(Cals.GetCals());
-            return new JsonResult(Cals.GetCals());
+            //JsonResult test = new JsonResult(Cals.GetCals());
+            return new JsonResult(Cals.GetCals(userLogin));
         }
         [HttpPost("RegUser")]
         public JsonResult RegUser(JsonElement JSPullAppo)

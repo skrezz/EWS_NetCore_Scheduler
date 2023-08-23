@@ -1,4 +1,5 @@
-﻿using EWS_NetCore_Scheduler.data;
+﻿using Castle.Components.DictionaryAdapter.Xml;
+using EWS_NetCore_Scheduler.data;
 using EWS_NetCore_Scheduler.Interfaces;
 using EWS_NetCore_Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,28 +12,27 @@ namespace EWS_NetCore_Scheduler.Service
 {
     public class EWSs:IEWSActing
     {
-        public WebCredentials getWebCreds()
+        public WebCredentials getWebCreds(string uLog, string uPass)
         {
 
-            string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
-            string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
+            //string? ews_user = Environment.GetEnvironmentVariable("EWS_USER");
+            //string? ews_pwd = Environment.GetEnvironmentVariable("EWS_PWD");
 
-            if (ews_user == null || ews_pwd == null) throw new ArgumentNullException("User or password is not provided");
+            if (uLog == null || uPass == null) throw new ArgumentNullException("User or password is not provided");
        
-            return new WebCredentials(ews_user, ews_pwd);
+            return new WebCredentials(uLog, uPass);
 
         }
-        public ExchangeService CrEwsService()
+        public ExchangeService CrEwsService(string uLog, string uPass)
         {
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016,TimeZoneInfo.Utc);
-            service.Credentials = getWebCreds();
+            service.Credentials = getWebCreds(uLog, uPass);
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
             if (Globs.ExCre == null)
-                Globs.ExCre = new Dictionary<string, ExchangeCredentials>();
-            //List<ExchangeCredentials> ExCret = new List<ExchangeCredentials>();
-            //Globs.ExCre.Add("dania",service.Credentials);
+                Globs.ExCre = new Dictionary<string, ExchangeService>();            
+            Globs.ExCre.Add(uLog, service);
             return service;
         }
         public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate,string endDate)
@@ -101,11 +101,13 @@ namespace EWS_NetCore_Scheduler.Service
             return Appointment.BindToRecurringMaster(service, id, props);
         }
 
-        public Cal[] GetCals()
+        public Cal[] GetCals(string userLogin)
         {
             
             IEWSActing EWS = new EWSs();
-            ExchangeService service = CrEwsService();
+            IAuthService Auth = new AuthService();
+
+            ExchangeService service = Auth.getService(userLogin);
             
             FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.Calendar,new FolderView(1000));
             Cal[] Calendars = new Cal[ffr.Folders.Count + 1];

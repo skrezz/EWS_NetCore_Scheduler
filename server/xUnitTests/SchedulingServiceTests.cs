@@ -19,18 +19,18 @@ namespace xUnitTests
             _shedServTest =  new SchedulingService(_IEWSActingMock.Object);
         }
         [Fact]
-        public void DelAppo_WithRightId()
+        public void DelAppo_WithRightId(string userLogin)
         {
             //arrange
             var id = Guid.NewGuid();
             //Act
-            var res= _shedServTest.DelAppo(id.ToString());
+            var res= _shedServTest.DelAppo(id.ToString(),userLogin);
             //assert
             Assert.Equal("deleted", res);
         }
 
         [Fact]
-        public void GetAppo_WithRightDate()
+        public void GetAppo_WithRightDate(string userLogin)
         {
             //arrange
             var startDate = new DateTime();
@@ -48,7 +48,7 @@ namespace xUnitTests
             _IEWSActingMock.Setup(x => x.FindAppointments(_IEWSActingMock.Object.CrEwsService())).Returns(findItem);*/
                 
             //Act
-            var res = _shedServTest.GetAppos(Ids, startDate.ToString(),"");
+            var res = _shedServTest.GetAppos(Ids, startDate.ToString(),"",userLogin);
             //assert
             Assert.Equal(Jsonappo.Value, res.Value);
         }
