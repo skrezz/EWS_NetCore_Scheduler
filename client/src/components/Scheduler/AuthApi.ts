@@ -9,13 +9,13 @@ let axiosConfig = {
   }
 };
 
-export const useRegUser = (
+/*export const useRegUser = (
   Log:string,
   Pass:string
   ) => {
   return useQuery<Promise<string | undefined>, Error>(["regUser",Log,Pass], () => RegUser(Log,Pass), {refetchOnWindowFocus: false});
-}
-const RegUser = async (
+}*/
+export const RegUser = async (
         Log:string,
         Pass:string
         )=>{
@@ -23,7 +23,8 @@ const RegUser = async (
         console.log(response.statusText)
         if(response.status==200)
         {
-          sessionStorage.setItem('accessToken',response.data.access_token)          
+          sessionStorage.setItem('accessToken',response.data.access_token)   
+          sessionStorage.setItem('userLogin',Log)       
         }
         else
           return response.statusText;

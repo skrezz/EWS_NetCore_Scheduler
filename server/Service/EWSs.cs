@@ -23,16 +23,18 @@ namespace EWS_NetCore_Scheduler.Service
             return new WebCredentials(uLog, uPass);
 
         }
-        public ExchangeService CrEwsService(string uLog, string uPass)
+        public ExchangeService CrEwsService(string uLog,ExchangeCredentials exCreds)
         {
+            AuthService au = new AuthService();
             ExchangeService service = new ExchangeService(ExchangeVersion.Exchange2016,TimeZoneInfo.Utc);
-            service.Credentials = getWebCreds(uLog, uPass);
+            service.Credentials = exCreds;
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
             service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
             if (Globs.ExCre == null)
-                Globs.ExCre = new Dictionary<string, ExchangeService>();            
-            Globs.ExCre.Add(uLog, service);
+                Globs.ExCre = new Dictionary<string, ExchangeCredentials>();            
+            if(!au.RegCheck(uLog))
+                Globs.ExCre.Add(uLog, service.Credentials);
             return service;
         }
         public Apps[] FindAppointments(ExchangeService service, string[] CalendarIds, string startDate,string endDate)
@@ -107,7 +109,7 @@ namespace EWS_NetCore_Scheduler.Service
             IEWSActing EWS = new EWSs();
             IAuthService Auth = new AuthService();
 
-            ExchangeService service = Auth.getService(userLogin);
+            ExchangeService service = CrEwsService(userLogin,Auth.getService(userLogin));
             
             FindFoldersResults ffr = service.FindFolders(WellKnownFolderName.Calendar,new FolderView(1000));
             Cal[] Calendars = new Cal[ffr.Folders.Count + 1];

@@ -39,11 +39,11 @@ namespace EWS_NetCore_Scheduler.Controllers
 
         [HttpPost("GetCalendars")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public JsonResult GetCalendars(string userLogin)
+        public JsonResult GetCalendars(JsonElement userLogin)
         {          
             ISchedulingService Cals = new SchedulingService(_EWSActing);
-            //JsonResult test = new JsonResult(Cals.GetCals());
-            return new JsonResult(Cals.GetCals(userLogin));
+            string test = userLogin.ToString();
+            return new JsonResult(Cals.GetCals(userLogin.ToString()));
         }
         [HttpPost("RegUser")]
         public JsonResult RegUser(JsonElement JSPullAppo)

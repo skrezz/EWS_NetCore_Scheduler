@@ -34,14 +34,15 @@ const postAppo = async (Appo: AppointmentModel) => {
 
 //get Calendars
 const getCalendars = async () : Promise<ICalendar[]> => {
+  const test:string="123"
   axios.defaults.headers.post['Authorization'] = "Bearer "+sessionStorage.getItem('accessToken');
-  const response = await axios.post(`${API_BASE_URL}/GetCalendars`,sessionStorage.getItem('userLogin'));
+  const response = await axios.post(`${API_BASE_URL}/GetCalendars`,[sessionStorage.getItem('userLogin')]);
   
   return response.data;
 };
 
 export const useCalendars = (
-  LogIsLoading:boolean
+  LogIsLoading:boolean,
 ) => {
   return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {enabled: LogIsLoading,refetchOnWindowFocus: false});
 }

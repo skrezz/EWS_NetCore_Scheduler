@@ -23,8 +23,9 @@ namespace EWS_NetCore_Scheduler.Service
         }
         public string DelAppo(string id,string userLogin)
         {
+            IEWSActing EWS = _EWSActing;
             IAuthService Auth = new AuthService();
-            ExchangeService service = Auth.getService(userLogin);
+            ExchangeService service = EWS.CrEwsService(userLogin, Auth.getService(userLogin));
             Appointment delAppo = _EWSActing.EWSAppoBind(service, id, new PropertySet(BasePropertySet.IdOnly));
             _EWSActing.EWSDelAppo(delAppo);
             return "deleted";
@@ -82,9 +83,9 @@ namespace EWS_NetCore_Scheduler.Service
             
             IEWSActing EWS = _EWSActing;
             IAuthService Auth = new AuthService();
-            ExchangeService service = Auth.getService(userLogin);
-            
-           
+            ExchangeService service = EWS.CrEwsService(userLogin, Auth.getService(userLogin));
+
+
             //ExCret.Add(service.Credentials);
             //Globs.ExCre.Add(service.Credentials);            
             // Set the start and end time and number of appointments to retrieve.
@@ -142,6 +143,9 @@ namespace EWS_NetCore_Scheduler.Service
         public Cal[] GetCals(string userLogin)
         {
             IEWSActing EWS = new EWSs();
+            userLogin = userLogin.Replace("\"", "");
+            userLogin = userLogin.Replace("[", "");
+            userLogin = userLogin.Replace("]", "");
 
             return EWS.GetCals(userLogin);
         }
@@ -233,7 +237,7 @@ namespace EWS_NetCore_Scheduler.Service
             IEWSActing EWS = new EWSs();
             IAuthService Auth = new AuthService();
 
-            ExchangeService service = Auth.getService(userLogin);
+            ExchangeService service = EWS.CrEwsService(userLogin, Auth.getService(userLogin));
             string calId = "";
             foreach(JsonObject jso in JsObjs)
             {

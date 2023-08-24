@@ -10,7 +10,7 @@ namespace EWS_NetCore_Scheduler.Interfaces
     public interface IEWSActing
     {
         WebCredentials getWebCreds(string uLog, string uPass);
-        ExchangeService CrEwsService(string uLog, string uPass);
+        ExchangeService CrEwsService(string uLog, ExchangeCredentials exCreds);
 
         string EWSDelAppo(Appointment appointment);
         Apps[] FindAppointments(ExchangeService service, string[] CalendarId, string startDate,string endDate);

@@ -22,7 +22,7 @@ namespace EWS_NetCore_Scheduler.Service
         string LogUser();
         JsonResult AccessTokenCreate(JsonElement userData);
         bool RegCheck(string uLogin);
-        ExchangeService getService(string uLogin);
+        ExchangeCredentials getService(string uLogin);
     }
     public class AuthService : IAuthService
     {
@@ -37,7 +37,7 @@ namespace EWS_NetCore_Scheduler.Service
             var uCreds = JsonObject.Parse(userData.ToString());
             string lgn = uCreds[0].ToString();
             //проверяем не регался ли пользователь ранее
-            if (!RegCheck(lgn))
+            if (RegCheck(lgn))
             {
                 var alreadyReg = new
                 {
@@ -63,21 +63,22 @@ namespace EWS_NetCore_Scheduler.Service
             //создаем сервис
             IEWSActing EWS = new EWSs();
             string pwd = uCreds[1].ToString();
-            EWS.CrEwsService(lgn, pwd);
+            EWS.CrEwsService(lgn,new WebCredentials(lgn,pwd));
 
             return new JsonResult(response);
         }
 
-        public ExchangeService getService(string uLogin)
+        public ExchangeCredentials getService(string uLogin)
         {
-            foreach (KeyValuePair<string, ExchangeService> uCred in Globs.ExCre)
+            if (Globs.ExCre != null)
+            foreach (KeyValuePair<string, ExchangeCredentials> uCred in Globs.ExCre)
             {
                 if (uCred.Key.Equals(uLogin))
                 {
                     return uCred.Value;
                 }
             }
-            return new ExchangeService(ExchangeVersion.Exchange2016, TimeZoneInfo.Utc); ;
+            return new WebCredentials("","") ;
         }
 
         public string LogUser()
@@ -88,7 +89,7 @@ namespace EWS_NetCore_Scheduler.Service
         public bool RegCheck(string uLogin)
         {
             if(Globs.ExCre!=null)
-            foreach (KeyValuePair<string, ExchangeService> uCred in Globs.ExCre)
+            foreach (KeyValuePair<string, ExchangeCredentials> uCred in Globs.ExCre)
             {
                 if(uCred.Key.Equals(uLogin))
                 {

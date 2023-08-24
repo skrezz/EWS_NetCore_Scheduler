@@ -32,7 +32,8 @@ import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import { json } from "stream/consumers";
 import { useRef } from "react";
-import { useLogUser } from "./AuthApi";
+import { useLogUser, RegUser } from "./AuthApi";
+import { useQueryClient } from "react-query";
 
 
 
@@ -120,7 +121,14 @@ export function DevScheduler() {
     localStorage.setItem('SelectedFavCals',JSON.stringify(selectedFavCalendars))
     setFavsWinOpen(false);
   };
+//Логинимся
+//это для мануального обновления query на логин
+const queryClient = useQueryClient()
+const reLog = () => {
+     queryClient.invalidateQueries("logUser")
+}
 
+//тут жу точно логинимся
   let logPassed:boolean=false;
   const {
     isLoading: LogIsLoading,
@@ -138,6 +146,7 @@ export function DevScheduler() {
     status:CalStatus,    
     isPreviousData: calsNotChanging,
   } = useCalendars(logPassed);
+  
   /*console.log("CalData-"+CalData)
   console.log("CalStatus-"+CalStatus)
   console.log("CalError-"+CalError)*/
@@ -186,10 +195,11 @@ export function DevScheduler() {
   }
 
   if (CalIsLoading||LogIsLoading) return <PlaceHolder />;
-  if (error || CalError||LogError)
+  if (error || LogError)
   {
-    console.log("CalError!.message-"+CalError!.message)
-    if(LogError!.message.includes("code 401"))
+    //console.log("CalError!.message-"+CalError!.message)
+    //console.log("LogError!.message-"+LogError!.message)
+    if(LogError!=null&&LogError!.message.includes("code 401"))
     {     
       return (
       <Paper className="AuthWindow">
@@ -223,8 +233,9 @@ export function DevScheduler() {
             variant="outlined"
             //onClick={()=>console.log("log: "+loginRef.current)}
             onClick={()=>{   
-                              
-               //setAuthWinOpen(false); 
+               RegUser(lgn,pwd)        
+               setAuthWinOpen(false);
+               reLog() 
                }
             }
             >
