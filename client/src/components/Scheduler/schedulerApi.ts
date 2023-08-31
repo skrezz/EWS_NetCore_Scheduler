@@ -9,20 +9,22 @@ export const useGetAppos = (
   currentDate: Date,
   calIds: string[] | undefined,
   currentViewState:string,
-  CalIsLoading: boolean
+  CalStatus: string
 ) => {
   localStorage.setItem('SelectedBaseCals',JSON.stringify(calIds)) 
   return useQuery<AppointmentModel[], Error>(
     ['appointmentData', calIds,currentDate,currentViewState],
     () => getAppos(currentDate, calIds!,currentViewState),
-    { enabled: CalIsLoading,refetchOnWindowFocus: false}
+    { enabled: (CalStatus=="success"),refetchOnWindowFocus: false}
   );
 };
 const getAppos = async (currentDate: Date, calIds: string[],currentViewState:string) => {
+  axios.defaults.headers.post['Authorization'] = "Bearer "+localStorage.getItem('accessToken');
   const response = await axios.post(
     `${API_BASE_URL}/GetAppos?startD=${currentDate.toISODate()}&currentViewState=${currentViewState}`,
-    calIds
+    [calIds,localStorage.getItem('userLogin')]
   );
+  console.log("0-")
   return response.data;
 };
 
@@ -33,18 +35,24 @@ const postAppo = async (Appo: AppointmentModel) => {
 };
 
 //get Calendars
-const getCalendars = async () : Promise<ICalendar[]> => {
-  const test:string="123"
-  axios.defaults.headers.post['Authorization'] = "Bearer "+sessionStorage.getItem('accessToken');
-  const response = await axios.post(`${API_BASE_URL}/GetCalendars`,[sessionStorage.getItem('userLogin')]);
-  
+const getCalendars = async (
+  isLogError:boolean
+) : Promise<ICalendar[]> => {  
+  axios.defaults.headers.post['Authorization'] = "Bearer "+localStorage.getItem('accessToken');
+  const response = await axios.post(`${API_BASE_URL}/GetCalendars`,[localStorage.getItem('userLogin'),localStorage.getItem('refreshToken')]);
+ 
+  if(response.data==null)
+  {        
+    localStorage.setItem('accessToken',"")
+  }
   return response.data;
 };
 
 export const useCalendars = (
-  LogIsLoading:boolean,
+  isLogError:boolean,
+  LogIsLoading:boolean
 ) => {
-  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(), {enabled: LogIsLoading,refetchOnWindowFocus: false});
+  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(isLogError), {enabled: (LogIsLoading&&isLogError),refetchOnWindowFocus: false});
 }
 
 export const usePostAppo = () => {

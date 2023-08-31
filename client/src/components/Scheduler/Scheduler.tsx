@@ -29,7 +29,7 @@ import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
 import { BasicLayout, } from "../UtilityComponents/BasicLayoutComponent";
-import { Box, Button, Modal, TextField } from "@mui/material";
+import { Box, Button, Modal, TextField, formControlClasses } from "@mui/material";
 import { json } from "stream/consumers";
 import { useRef } from "react";
 import { useLogUser, RegUser } from "./AuthApi";
@@ -51,6 +51,7 @@ const styleFavsWindow = {
 };
 
 export function DevScheduler() {
+  
   //стейты логина и пароля
   const [lgn, setLgn] = React.useState("");
   const handleLgnChange = (lgnValue:string) => { 
@@ -129,37 +130,64 @@ const reLog = () => {
 }
 
 //тут жу точно логинимся
-  let logPassed:boolean=false;
+ /*console.log("Base")
+ console.log("lgn-"+lgn)
+ console.log("pwd-"+pwd)
+ console.log("currentDate-"+currentDate)
+ console.log("currentViewState-"+currentViewState)
+ console.log("selectedCalendars-"+selectedCalendars)
+ console.log("selectedFavCalendars-"+selectedFavCalendars)
+ console.log("favsWinOpen-"+favsWinOpen)*/
+
+
+
   const {
     isLoading: LogIsLoading,
     error: LogError,
     data: LogData,
     status:LogStatus, 
     isError:isLogError,
-  } = useLogUser();
-  if(!isLogError&&!LogIsLoading) logPassed=true;
-  console.log("logPassed-"+logPassed)
+  } = useLogUser("logUser","LogUser",true);
+  //чекаем рефреш токен
+  //console.log("isLogError-"+isLogError)
+  const {
+    isLoading: refTokenCheckIsLoading,
+    error: refTokenCheckError,
+    data: refTokenCheckData,
+    status:refTokenCheckStatus, 
+    isError:isrefTokenCheckError,
+  } = useLogUser("refTokenCheck","RefToken",isLogError)
+  
   const {
     isLoading: CalIsLoading,
     error: CalError,
     data: CalData,
     status:CalStatus,    
-    isPreviousData: calsNotChanging,
-  } = useCalendars(logPassed);
-  
-  /*console.log("CalData-"+CalData)
-  console.log("CalStatus-"+CalStatus)
-  console.log("CalError-"+CalError)*/
+    isPreviousData: calsNotChanging    
+  } = useCalendars(!isLogError,!LogIsLoading);
+  /*console.log("LogIsLoading-"+LogIsLoading)
+  console.log("LogError-"+LogError)
+  console.log("isLogError-"+isLogError)
+  console.log("refTokenCheckIsLoading-"+refTokenCheckIsLoading)
+  console.log("refTokenCheckData-"+refTokenCheckData)
+  console.log("CalIsLoading-"+CalIsLoading)
+  console.log("CalError-"+CalError)
+  console.log("CalData-"+CalData)
+  console.log("CalStatus-"+CalStatus)*/
+
+  //console.log("CalData-"+CalData)
+  //console.log("CalStatus-"+CalStatus)
+  //console.log("CalError-"+CalError)
   const { isLoading, error, data, isFetching } = useGetAppos(
     currentDate,
     selectedCalendars,
     currentViewState,
-    !CalIsLoading
+    CalStatus    
   );
 
   //Post/change/delete Appos
   const postAppoinment = usePostAppo();
-
+  //console.log("postAppoinment-"+postAppoinment)
   
   
   function commitChanges(changes: ChangeSet) {
@@ -194,13 +222,15 @@ const reLog = () => {
     }
   }
 
-  if (CalIsLoading||LogIsLoading) return <PlaceHolder />;
+  if (CalIsLoading||LogIsLoading||refTokenCheckIsLoading) return <PlaceHolder />;
   if (error || LogError)
   {
     //console.log("CalError!.message-"+CalError!.message)
     //console.log("LogError!.message-"+LogError!.message)
     if(LogError!=null&&LogError!.message.includes("code 401"))
-    {     
+    { 
+      if (refTokenCheckIsLoading) return <PlaceHolder />;
+      if(refTokenCheckData=="refTokenFail")     
       return (
       <Paper className="AuthWindow">
           <Modal
@@ -233,9 +263,8 @@ const reLog = () => {
             variant="outlined"
             //onClick={()=>console.log("log: "+loginRef.current)}
             onClick={()=>{   
-               RegUser(lgn,pwd)        
-               setAuthWinOpen(false);
-               reLog() 
+               RegUser(lgn,pwd) 
+               //reLog() 
                }
             }
             >
@@ -265,11 +294,16 @@ const reLog = () => {
   }
 const CalDataBase =CalData?.filter((calendar)=>{
 return selectedFavCalendars.indexOf(calendar.calId)>-1
+
 })
+
   return (
+   
     <React.Fragment>
-      <Paper className="header">
+      <Paper className="header">      
         {CalDataBase?.map((calendar) => {  
+          
+          setAuthWinOpen(false)
           selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false                 
           return (
             <CheckBoxRender
@@ -300,7 +334,7 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
             aria-describedby="parent-modal-description"
             >            
                 <Box sx={{ ...styleFavsWindow, width: 400 }}>
-                    {CalData?.map((calendar:any) => {
+                    {CalData?.map((calendar:any) => {                      
                         selectedFavCalendars.indexOf(calendar.calId)>-1?calendar.checkedFav=true:calendar.checkedFav=false
                     return (
                         <CheckBoxRender

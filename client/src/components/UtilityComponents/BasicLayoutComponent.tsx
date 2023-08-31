@@ -19,7 +19,7 @@ export function BasicLayout(props: CustomAppointmentFormProps) {
     props.onFieldChange({ calId: value.target.value });
     setCalendarId(value.target.value)
   };
-
+  console.log("4") 
   return (
     <AppointmentForm.BasicLayout {...props}>
       <Select 

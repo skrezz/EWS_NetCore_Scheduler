@@ -20,9 +20,12 @@ namespace EWS_NetCore_Scheduler.Service
     {
         JsonResult RegUser(JsonElement userData);
         string LogUser();
-        JsonResult AccessTokenCreate(JsonElement userData);
+        JsonResult TokenCreate(JsonElement userData, int aTokenTimeLimit, int rTokenTimeLimit);
         bool RegCheck(string uLogin);
         ExchangeCredentials getService(string uLogin);
+        string RefreshTokenCheck(string userLogin, string refToken);
+        bool CheckCreds(JsonElement userData);
+
     }
     public class AuthService : IAuthService
     {
@@ -32,40 +35,61 @@ namespace EWS_NetCore_Scheduler.Service
         public static SymmetricSecurityKey GetSymmetricSecurityKey() =>
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ssKey));
 
-        public JsonResult AccessTokenCreate(JsonElement userData)
+        public JsonResult TokenCreate(JsonElement userData,int aTokenTimeLimit, int rTokenTimeLimit)
         {
+            IEWSActing EWS = new EWSs();
             var uCreds = JsonObject.Parse(userData.ToString());
-            string lgn = uCreds[0].ToString();
-            //проверяем не регался ли пользователь ранее
-            if (RegCheck(lgn))
-            {
-                var alreadyReg = new
-                {
-                    answr = "Allready registered"
-                };
-                return new JsonResult(alreadyReg);
-            }             
-            //Создаем токен
+            string lgn = uCreds[0].ToString();       
+     
+            //Создаем acces токен
             var claims = new List<Claim> { new Claim(ClaimTypes.Name, lgn) };
             var jwt = new JwtSecurityToken(
                 issuer: iss,
                 audience: aud,
                 claims: claims,
-                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+                expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(aTokenTimeLimit)),
                 signingCredentials: new SigningCredentials(GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
                 );
-            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            var encodedAccesJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            //Создаем рефреш токен
+            var encodedRefreshJwt = "";
+            string refToken = RefreshTokenCheck(lgn, uCreds[1].ToString());
+            if (refToken == "")
+            {
+                claims = new List<Claim> { new Claim(ClaimTypes.Name, lgn) };
+                jwt = new JwtSecurityToken(
+                    issuer: iss,
+                    audience: aud,
+                    claims: claims,
+                    expires: DateTime.UtcNow.Add(TimeSpan.FromDays(rTokenTimeLimit)),
+                    signingCredentials: new SigningCredentials(GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256)
+                    );
+                encodedRefreshJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+            }
+            else
+                encodedRefreshJwt = refToken;
+
+
+            Utils.fileWriteLine(Globs.refTokensPath, lgn+";"+encodedRefreshJwt);
             var response = new
             {
-                access_token = encodedJwt,
+                access_token = encodedAccesJwt,
+                refresh_token = encodedRefreshJwt,
                 login = lgn
             };
-            //создаем сервис
-            IEWSActing EWS = new EWSs();
-            string pwd = uCreds[1].ToString();
-            EWS.CrEwsService(lgn,new WebCredentials(lgn,pwd));
+
 
             return new JsonResult(response);
+        }
+        public bool CheckCreds(JsonElement userData)
+        {
+            IEWSActing EWS = new EWSs();
+            var uCreds = JsonObject.Parse(userData.ToString());
+            string lgn = uCreds[0].ToString();
+            string pwd = uCreds[1].ToString();
+            if (EWS.CrEwsService(lgn, new WebCredentials(lgn, pwd)) == null)
+                return false;
+            return true;
         }
 
         public ExchangeCredentials getService(string uLogin)
@@ -98,11 +122,32 @@ namespace EWS_NetCore_Scheduler.Service
             }
             return false;
         }
-
+        public string RefreshTokenCheck(string userLogin, string refToken)
+        {
+            string ln = "";
+            if(File.Exists(Globs.refTokensPath))
+            using (StreamReader sr = new StreamReader(Globs.refTokensPath))
+            {
+                
+                while ((ln = sr.ReadLine()) != null)
+                {
+                        if (ln.Contains(userLogin) && ln.Contains(refToken))
+                        {
+                            return refToken;
+                        }
+                }
+            }
+                return "";
+        }
         public JsonResult RegUser(JsonElement userData)
         {
-            
-            return AccessTokenCreate(userData);
+            if (CheckCreds(userData))
+            {
+                JsonElement userDataForToken = JsonSerializer.SerializeToElement(new string[] { userData[0].ToString(), userData[2].ToString() });        
+               
+                return new JsonResult(TokenCreate(userDataForToken, 2, 60));
+            }
+            return new JsonResult("WrongCreds");
         }
     }
 }

@@ -18,8 +18,18 @@ namespace EWS_NetCore_Scheduler.Controllers
         private readonly IEWSActing _EWSActing = new EWSs();
         
         [HttpPost("GetAppos")]
-        public JsonResult GetAppos(string startD, string currentViewState, string[] CalendarIds, string userLogin)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public JsonResult GetAppos(string startD, string currentViewState, JsonElement JSGetAppos)
         {
+            var data=JSGetAppos[0];  
+            string[] CalendarIds = new string[data.GetArrayLength()];
+            string userLogin = "";
+            for(int i=0;i< data.GetArrayLength();i++)
+            {
+                CalendarIds[i] = data[i].ToString();
+            }
+            //CalendarIds = data[0];
+            userLogin = JSGetAppos[1].ToString();
             ISchedulingService ApposInfo = new SchedulingService(_EWSActing);            
             //JsonResult test = ApposInfo.GetAppos(CalendarIds, startD);
             return ApposInfo.GetAppos(CalendarIds, startD, currentViewState,userLogin);
@@ -39,24 +49,42 @@ namespace EWS_NetCore_Scheduler.Controllers
 
         [HttpPost("GetCalendars")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public JsonResult GetCalendars(JsonElement userLogin)
-        {          
+        public JsonResult GetCalendars(JsonElement userData)
+        {   
             ISchedulingService Cals = new SchedulingService(_EWSActing);
-            string test = userLogin.ToString();
-            return new JsonResult(Cals.GetCals(userLogin.ToString()));
+            AuthService au = new AuthService();
+            //au.refreshTokenCheck(userData);
+            return new JsonResult(Cals.GetCals(userData));
         }
         [HttpPost("RegUser")]
-        public JsonResult RegUser(JsonElement JSPullAppo)
+        public JsonResult RegUser(JsonElement userData)
         {
             AuthService Auth = new AuthService();
-            return Auth.RegUser(JSPullAppo);
+            
+            return Auth.RegUser(userData);
         }
         [HttpPost("LogUser")] 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public string LogUser(JsonElement JSPullAppo)
+        public string LogUser(JsonElement userData)
         {
             //AuthService Auth = new AuthService();
             return "congrats";
+        }
+        [HttpPost("RefToken")]
+        public string RefToken(JsonElement userData)
+        {
+            AuthService Auth = new AuthService();
+            if (Auth.RefreshTokenCheck(userData[0].ToString(), userData[1].ToString()) == ""|| !Auth.RegCheck(userData[0].ToString()))
+                return "refTokenFail";
+            else
+            {
+                var res = Auth.TokenCreate(userData, 2, 60);               
+                dynamic data = res.Value;              
+                
+                return data.access_token;
+
+                //return res[1];
+            }
         }
 
 

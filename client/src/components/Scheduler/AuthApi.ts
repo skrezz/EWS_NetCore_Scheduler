@@ -8,7 +8,7 @@ let axiosConfig = {
     'Authorization': "Bearer "+sessionStorage.getItem('accessToken')
   }
 };
-
+let refDone:boolean=false;
 /*export const useRegUser = (
   Log:string,
   Pass:string
@@ -19,30 +19,50 @@ export const RegUser = async (
         Log:string,
         Pass:string
         )=>{
-        const response = await axios.post(`${API_BASE_URL}/RegUser`, [Log,Pass]);
+        const response = await axios.post(`${API_BASE_URL}/RegUser`, [Log,Pass,localStorage.getItem('refreshToken')]);
         console.log(response.statusText)
         if(response.status==200)
-        {
-          sessionStorage.setItem('accessToken',response.data.access_token)   
-          sessionStorage.setItem('userLogin',Log)       
+        {       
+          localStorage.setItem('accessToken',response.data.value.access_token)   
+          localStorage.setItem('refreshToken',response.data.value.refresh_token) 
+          localStorage.setItem('userLogin',Log)       
         }
         else
           return response.statusText;
           
         return response.data;
       }
-export const useLogUser = () => {
-        return useQuery<Promise<any>, Error>(["logUser"], () => LogUser(), {refetchOnWindowFocus: false});
+export const useLogUser = (
+  queryName:string,
+  backAdress:string,
+  isLogError:boolean,  
+  ) => {
+        return useQuery<string, Error>([queryName,refDone,isLogError], () => LogUser(backAdress), {enabled: isLogError,refetchOnWindowFocus: false});
       }
-const LogUser = async()=>{
-        axios.defaults.headers.post['Authorization'] = "Bearer "+sessionStorage.getItem('accessToken');
-        const response = await axios.post(`${API_BASE_URL}/LogUser`,{her:"her"});        
+const LogUser = async(
+  backAdress:string,  
+)=>{
+        axios.defaults.headers.post['Authorization'] = "Bearer "+localStorage.getItem('accessToken');
+        const response = await axios.post(`${API_BASE_URL}/${backAdress}`,[localStorage.getItem('userLogin'),localStorage.getItem('refreshToken')]);  
+        console.log("3")      
         if(response.status==200)
-        {
-          console.log("CONGRATULATIONS")
+        {         
+          if(backAdress=="RefToken")
+          {
+          localStorage.setItem('accessToken',response.data)
+          refDone =true;  
+          console.log("Access Token Refreshed") 
+          } 
+          else
+          console.log("Logged")  
         }
         else
+        {
+          console.log("Refresh Token error") 
+          refDone=false
           return response.statusText;
+          
+        }
 
         return response.data;
       }

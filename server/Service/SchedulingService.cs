@@ -140,9 +140,10 @@ namespace EWS_NetCore_Scheduler.Service
             }
         }
 
-        public Cal[] GetCals(string userLogin)
+        public Cal[] GetCals(JsonElement userData)
         {
             IEWSActing EWS = new EWSs();
+            string userLogin = userData[0].ToString();
             userLogin = userLogin.Replace("\"", "");
             userLogin = userLogin.Replace("[", "");
             userLogin = userLogin.Replace("]", "");

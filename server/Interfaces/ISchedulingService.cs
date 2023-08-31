@@ -12,7 +12,7 @@ namespace EWS_NetCore_Scheduler.Interfaces
             string PostAppo(JsonElement JSPostAppo,string userLogin);
             string PostOrEditAppo(ExchangeService service, Appointment[] newAppos, string calId);
             string DelAppo(string id, string userLogin);
-            Cal[] GetCals(string userLogin);
+            Cal[] GetCals(JsonElement userData);
         
     }
 }
