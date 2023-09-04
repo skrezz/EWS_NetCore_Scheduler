@@ -3,7 +3,6 @@ import React from 'react';
 
 export function PlaceHolder()
 {
-  console.log("6") 
   return(
     <div
     style={{

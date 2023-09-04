@@ -35,9 +35,7 @@ const postAppo = async (Appo: AppointmentModel) => {
 };
 
 //get Calendars
-const getCalendars = async (
-  isLogError:boolean
-) : Promise<ICalendar[]> => {  
+const getCalendars = async () : Promise<ICalendar[]> => {  
   axios.defaults.headers.post['Authorization'] = "Bearer "+localStorage.getItem('accessToken');
   const response = await axios.post(`${API_BASE_URL}/GetCalendars`,[localStorage.getItem('userLogin'),localStorage.getItem('refreshToken')]);
  
@@ -50,9 +48,9 @@ const getCalendars = async (
 
 export const useCalendars = (
   isLogError:boolean,
-  LogIsLoading:boolean
+  
 ) => {
-  return useQuery<ICalendar[], Error>(["availableCalendars"], () => getCalendars(isLogError), {enabled: (LogIsLoading&&isLogError),refetchOnWindowFocus: false});
+  return useQuery<ICalendar[], Error>(["availableCalendars",isLogError], () => getCalendars(), {enabled: (isLogError),refetchOnWindowFocus: false});
 }
 
 export const usePostAppo = () => {

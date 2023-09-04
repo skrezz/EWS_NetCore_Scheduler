@@ -51,7 +51,11 @@ const styleFavsWindow = {
 };
 
 export function DevScheduler() {
-  
+  //это для мануального обновления query на логин
+const queryClient = useQueryClient()
+const reLog = () => {
+     queryClient.invalidateQueries("availableCalendars")
+}
   //стейты логина и пароля
   const [lgn, setLgn] = React.useState("");
   const handleLgnChange = (lgnValue:string) => { 
@@ -68,6 +72,11 @@ export function DevScheduler() {
   };
   const handleAuthWinClose = () => {   
     setAuthWinOpen(false);
+  }; 
+  const handleRegdone = (LogIsDone:boolean) => {  
+    RegUser(lgn,pwd)   
+    reLog()
+    if(!LogIsDone) setAuthWinOpen(false);
   }; 
 
   //дата
@@ -123,61 +132,35 @@ export function DevScheduler() {
     setFavsWinOpen(false);
   };
 //Логинимся
-//это для мануального обновления query на логин
-const queryClient = useQueryClient()
-const reLog = () => {
-     queryClient.invalidateQueries("logUser")
-}
+
+
 
 //тут жу точно логинимся
- /*console.log("Base")
- console.log("lgn-"+lgn)
- console.log("pwd-"+pwd)
- console.log("currentDate-"+currentDate)
- console.log("currentViewState-"+currentViewState)
- console.log("selectedCalendars-"+selectedCalendars)
- console.log("selectedFavCalendars-"+selectedFavCalendars)
- console.log("favsWinOpen-"+favsWinOpen)*/
-
-
-
   const {
     isLoading: LogIsLoading,
     error: LogError,
     data: LogData,
     status:LogStatus, 
     isError:isLogError,
-  } = useLogUser("logUser","LogUser",true);
-  //чекаем рефреш токен
-  //console.log("isLogError-"+isLogError)
-  const {
-    isLoading: refTokenCheckIsLoading,
-    error: refTokenCheckError,
-    data: refTokenCheckData,
-    status:refTokenCheckStatus, 
-    isError:isrefTokenCheckError,
-  } = useLogUser("refTokenCheck","RefToken",isLogError)
-  
+    isFetching:LogIsFetching
+  } = useLogUser("logUser","LogUser",true,authWinOpen);
   const {
     isLoading: CalIsLoading,
     error: CalError,
     data: CalData,
     status:CalStatus,    
     isPreviousData: calsNotChanging    
-  } = useCalendars(!isLogError,!LogIsLoading);
-  /*console.log("LogIsLoading-"+LogIsLoading)
-  console.log("LogError-"+LogError)
-  console.log("isLogError-"+isLogError)
-  console.log("refTokenCheckIsLoading-"+refTokenCheckIsLoading)
-  console.log("refTokenCheckData-"+refTokenCheckData)
-  console.log("CalIsLoading-"+CalIsLoading)
-  console.log("CalError-"+CalError)
-  console.log("CalData-"+CalData)
-  console.log("CalStatus-"+CalStatus)*/
-
-  //console.log("CalData-"+CalData)
-  //console.log("CalStatus-"+CalStatus)
-  //console.log("CalError-"+CalError)
+  } = useCalendars(isLogError);
+  //чекаем рефреш токен
+  const {
+    isLoading: refTokenCheckIsLoading,
+    error: refTokenCheckError,
+    data: refTokenCheckData,
+    status:refTokenCheckStatus, 
+    isError:isrefTokenCheckError,
+  } = useLogUser("refTokenCheck","RefToken",isLogError,false)
+  
+  
   const { isLoading, error, data, isFetching } = useGetAppos(
     currentDate,
     selectedCalendars,
@@ -187,7 +170,6 @@ const reLog = () => {
 
   //Post/change/delete Appos
   const postAppoinment = usePostAppo();
-  //console.log("postAppoinment-"+postAppoinment)
   
   
   function commitChanges(changes: ChangeSet) {
@@ -222,13 +204,11 @@ const reLog = () => {
     }
   }
 
+  
   if (CalIsLoading||LogIsLoading||refTokenCheckIsLoading) return <PlaceHolder />;
-  if (error || LogError)
+  if (localStorage.getItem('regDone')?.toString()!="regDone")
   {
-    //console.log("CalError!.message-"+CalError!.message)
-    //console.log("LogError!.message-"+LogError!.message)
-    if(LogError!=null&&LogError!.message.includes("code 401"))
-    { 
+ 
       if (refTokenCheckIsLoading) return <PlaceHolder />;
       if(refTokenCheckData=="refTokenFail")     
       return (
@@ -262,10 +242,11 @@ const reLog = () => {
             <Button 
             variant="outlined"
             //onClick={()=>console.log("log: "+loginRef.current)}
-            onClick={()=>{   
-               RegUser(lgn,pwd) 
-               //reLog() 
-               }
+            onClick={(e)=>handleRegdone(isLogError)
+              /*()=>{                
+               RegUser(lgn,pwd)
+               reLog() 
+               }*/
             }
             >
             ok   
@@ -282,7 +263,8 @@ const reLog = () => {
       </Paper>
       )
       
-    }
+
+
     return (
       <div>
         An error has occurred: +{" "}
@@ -292,6 +274,7 @@ const reLog = () => {
      
     );
   }
+  
 const CalDataBase =CalData?.filter((calendar)=>{
 return selectedFavCalendars.indexOf(calendar.calId)>-1
 
@@ -301,9 +284,10 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
    
     <React.Fragment>
       <Paper className="header">      
-        {CalDataBase?.map((calendar) => {  
+        {
           
-          setAuthWinOpen(false)
+        CalDataBase?.map((calendar) => {
+          if(authWinOpen) setAuthWinOpen(false)
           selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false                 
           return (
             <CheckBoxRender
