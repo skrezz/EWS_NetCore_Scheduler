@@ -28,11 +28,7 @@ const getAppos = async (currentDate: Date, calIds: string[],currentViewState:str
   return response.data;
 };
 
-//Post appointments
-const postAppo = async (Appo: AppointmentModel) => {
-  const response = await axios.post(`${API_BASE_URL}/PostAppos`, Appo);
-  return response.data;
-};
+
 
 //get Calendars
 const getCalendars = async () : Promise<ICalendar[]> => {  
@@ -48,25 +44,31 @@ const getCalendars = async () : Promise<ICalendar[]> => {
 
 export const useCalendars = (
   isLogError:boolean,
-  
+  LogIsLoading:boolean
 ) => {
-  return useQuery<ICalendar[], Error>(["availableCalendars",isLogError], () => getCalendars(), {enabled: (isLogError),refetchOnWindowFocus: false});
+  return useQuery<ICalendar[], Error>(["availableCalendars",isLogError], () => getCalendars(), {enabled: (isLogError&&LogIsLoading),refetchOnWindowFocus: false});
 }
+//Post appointments
 
 export const usePostAppo = () => {
   const queryClient = useQueryClient();
   return useMutation(postAppo, {
     onSuccess: () => {
+      sessionStorage.removeItem('AppoToPostTmp')
       queryClient.invalidateQueries("appointmentData");
+    },
+    onError:(err: Error) => { 
+      if(err.message.includes("401")) 
+      {
+        queryClient.invalidateQueries("logUser");
+      }
     },
   });
 };
+const postAppo = async (Appo: AppointmentModel) => {  
+  axios.defaults.headers.post['Authorization'] = "Bearer "+localStorage.getItem('accessToken');
+  const response = await axios.post(`${API_BASE_URL}/PostAppos`, [Appo,localStorage.getItem('userLogin')]);
 
-//auth
-export const authStart=async(
-  Log:string,
-  Pass:string
-)=>{
-  const response = await axios.post(`${API_BASE_URL}/PostAppos`, [Log,Pass]);
   return response.data;
-}
+};
+

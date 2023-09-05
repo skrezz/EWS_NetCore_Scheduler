@@ -56,8 +56,8 @@ namespace EWS_NetCore_Scheduler.Service
             IEWSActing EWS = new EWSs();
             //CalendarFolder calendar = CalendarFolder.Bind(service, CalendarId, new PropertySet());          
             ItemView iView = new ItemView(200);
-            SearchFilter greaterthanfilter = new SearchFilter.IsGreaterThanOrEqualTo(ItemSchema.DateTimeReceived, DateTime.Parse(startDate));
-            SearchFilter lessthanfilter = new SearchFilter.IsLessThanOrEqualTo(ItemSchema.DateTimeReceived, DateTime.Parse(endDate));
+            SearchFilter greaterthanfilter = new SearchFilter.IsGreaterThanOrEqualTo(AppointmentSchema.Start, DateTime.Parse(startDate));
+            SearchFilter lessthanfilter = new SearchFilter.IsLessThanOrEqualTo(AppointmentSchema.End, DateTime.Parse(endDate));
             SearchFilter searchFilter = new SearchFilter.SearchFilterCollection(LogicalOperator.And, greaterthanfilter, lessthanfilter);
             //SearchFilter searchFilter = new SearchFilter.IsGreaterThanOrEqualTo(AppointmentSchema.Start, DateTime.Parse(startDate));
 

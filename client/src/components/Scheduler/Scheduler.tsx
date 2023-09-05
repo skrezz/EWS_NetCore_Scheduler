@@ -24,7 +24,7 @@ import {
   ViewSwitcher,
 } from "@devexpress/dx-react-scheduler-material-ui";
 
-import { authStart, useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
+import { useCalendars, useGetAppos, usePostAppo } from "./schedulerApi";
 import { PlaceHolder } from "../UtilityComponents/PlaceholderComponet";
 import { CheckBoxRender } from "../UtilityComponents/CheckBoxListComponet";
 import { ICalendar } from "../Support/Models";
@@ -53,8 +53,8 @@ const styleFavsWindow = {
 export function DevScheduler() {
   //это для мануального обновления query на логин
 const queryClient = useQueryClient()
-const reLog = () => {
-     queryClient.invalidateQueries("availableCalendars")
+const reLog = (qName:string) => {
+     queryClient.invalidateQueries(qName)
 }
   //стейты логина и пароля
   const [lgn, setLgn] = React.useState("");
@@ -74,8 +74,9 @@ const reLog = () => {
     setAuthWinOpen(false);
   }; 
   const handleRegdone = (LogIsDone:boolean) => {  
-    RegUser(lgn,pwd)   
-    reLog()
+    RegUser(lgn,pwd)     
+    reLog("logUser")
+    reLog("availableCalendars")
     if(!LogIsDone) setAuthWinOpen(false);
   }; 
 
@@ -144,13 +145,7 @@ const reLog = () => {
     isError:isLogError,
     isFetching:LogIsFetching
   } = useLogUser("logUser","LogUser",true,authWinOpen);
-  const {
-    isLoading: CalIsLoading,
-    error: CalError,
-    data: CalData,
-    status:CalStatus,    
-    isPreviousData: calsNotChanging    
-  } = useCalendars(isLogError);
+
   //чекаем рефреш токен
   const {
     isLoading: refTokenCheckIsLoading,
@@ -159,6 +154,14 @@ const reLog = () => {
     status:refTokenCheckStatus, 
     isError:isrefTokenCheckError,
   } = useLogUser("refTokenCheck","RefToken",isLogError,false)
+//берем календари
+  const {
+    isLoading: CalIsLoading,
+    error: CalError,
+    data: CalData,
+    status:CalStatus,    
+    isPreviousData: calsNotChanging    
+  } = useCalendars(!isLogError,!LogIsLoading);
   
   
   const { isLoading, error, data, isFetching } = useGetAppos(
@@ -175,9 +178,8 @@ const reLog = () => {
   function commitChanges(changes: ChangeSet) {
     let appoTmp: AppointmentModel = {
       startDate: "",
-    };
-    if (changes.added) {
-      
+    };    
+    if (changes.added) {      
       postAppoinment.mutate({
         startDate: currentDate,       
         ...changes.added,
@@ -202,13 +204,14 @@ const reLog = () => {
       appoTmp.title = "deleteIt";
       postAppoinment.mutate(appoTmp);
     }
+   
+    sessionStorage.setItem('AppoToPostTmp',JSON.stringify(changes))
   }
+  //console.log("isLogError-"+isLogError)
 
-  
   if (CalIsLoading||LogIsLoading||refTokenCheckIsLoading) return <PlaceHolder />;
-  if (localStorage.getItem('regDone')?.toString()!="regDone")
-  {
- 
+  if (localStorage.getItem('regDone')?.toString()!="regDone"||localStorage.getItem('accessToken')?.toString()=="refTokenFail")
+  { 
       if (refTokenCheckIsLoading) return <PlaceHolder />;
       if(refTokenCheckData=="refTokenFail")     
       return (
@@ -250,14 +253,7 @@ const reLog = () => {
             }
             >
             ok   
-            </Button>
-            <Button 
-            variant="outlined"
-            //onClick={()=>console.log("log: "+loginRef.current)}
-            //onClick={()=>useLogUser()}
-            >
-            testToken   
-            </Button>
+            </Button>           
             </Box>
           </Modal>
       </Paper>
@@ -273,21 +269,34 @@ const reLog = () => {
       </div>
      
     );
+  }  
+  if(error?.message.includes("401")) 
+  {   
+    reLog("logUser")
+    reLog("refTokenCheck")
+    reLog("appointmentData")
   }
-  
+  if(CalData==undefined)
+  {    
+    
+    if(localStorage.getItem('accessToken')?.toString()!="refTokenFail")reLog("refTokenCheck")
+    if(localStorage.getItem('accessToken')!=undefined&&localStorage.getItem('accessToken')?.toString()!="refTokenFail")
+    {     
+      reLog("logUser")   
+    }
+  }
+  if(sessionStorage.getItem('AppoToPostTmp')!=undefined&&!isLoading&&postAppoinment.status.toString()!="loading")
+  {
+    commitChanges(JSON.parse(sessionStorage.getItem('AppoToPostTmp')!))
+  }
 const CalDataBase =CalData?.filter((calendar)=>{
 return selectedFavCalendars.indexOf(calendar.calId)>-1
-
 })
-
-  return (
-   
+  return (   
     <React.Fragment>
       <Paper className="header">      
-        {
-          
-        CalDataBase?.map((calendar) => {
-          if(authWinOpen) setAuthWinOpen(false)
+        {          
+        CalDataBase?.map((calendar) => {          
           selectedCalendars.indexOf(calendar.calId)>-1?calendar.checkedBase=true:calendar.checkedBase=false                 
           return (
             <CheckBoxRender
@@ -344,7 +353,7 @@ return selectedFavCalendars.indexOf(calendar.calId)>-1
               currentViewName={currentViewState}              
             />
             <EditingState
-              onCommitChanges={(changes) => commitChanges(changes)}
+              onCommitChanges={(changes) => commitChanges(changes)}              
             />
             <IntegratedEditing />
             <DayView startDayHour={9} endDayHour={19} />

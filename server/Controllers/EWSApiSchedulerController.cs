@@ -35,10 +35,16 @@ namespace EWS_NetCore_Scheduler.Controllers
             return ApposInfo.GetAppos(CalendarIds, startD, currentViewState,userLogin);
         }
         [HttpPost("PostAppos")]
-        public string PostAppos(JsonElement JSPullAppo, string userLogin)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public string PostAppos(JsonElement JSPullAppo)
         {
-            ISchedulingService PostAppo = new SchedulingService(_EWSActing);            
-            return PostAppo.PostAppo(JSPullAppo,userLogin);
+            ISchedulingService PostAppo = new SchedulingService(_EWSActing);
+            
+            JsonElement Appo = JSPullAppo[0];            
+            string userLogin = JSPullAppo[1].ToString();
+            ISchedulingService ApposInfo = new SchedulingService(_EWSActing);
+            //return null;
+            return PostAppo.PostAppo(JSPullAppo[0], JSPullAppo[1].ToString());
         }
         [HttpGet("DelAppo")]
         public string DelAppo(string id, string userLogin)
