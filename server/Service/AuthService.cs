@@ -12,7 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using System.Text;
-
+using System.Data.SQLite;
 
 namespace EWS_NetCore_Scheduler.Service
 {
@@ -69,8 +69,8 @@ namespace EWS_NetCore_Scheduler.Service
             else
                 encodedRefreshJwt = refToken;
 
-
-            Utils.fileWriteLine(Globs.refTokensPath, lgn+";"+encodedRefreshJwt);
+            Utils.dbInsertOrUpdate(lgn, encodedRefreshJwt, rTokenTimeLimit);
+            //Utils.fileWriteLine(Globs.refTokensPath, lgn, encodedRefreshJwt);
             var response = new
             {
                 access_token = encodedAccesJwt,
@@ -122,30 +122,70 @@ namespace EWS_NetCore_Scheduler.Service
             }
             return false;
         }
+        /* Версия для txt файла
+         * public string RefreshTokenCheck(string userLogin, string refToken)
+         {
+             string ln = "";
+             if(File.Exists(Globs.refTokensPath))
+             using (StreamReader sr = new StreamReader(Globs.refTokensPath))
+             {
+
+                 while ((ln = sr.ReadLine()) != null)
+                 {
+                         if (ln.Contains(userLogin) && ln.Contains(refToken))
+                         {
+                             return refToken;
+                         }
+                 }
+             }
+                 return "";
+         }*/
+
+        //версия для SQLite файла
         public string RefreshTokenCheck(string userLogin, string refToken)
-        {
-            string ln = "";
-            if(File.Exists(Globs.refTokensPath))
-            using (StreamReader sr = new StreamReader(Globs.refTokensPath))
+        {           
+            if (File.Exists(Globs.refTokensPath))
             {
-                
-                while ((ln = sr.ReadLine()) != null)
+                SQLiteConnection sqlite_conn = new SQLiteConnection(@"Data Source=D:\Proggin\Igor\Scheduler\EWS_NetCore_Scheduler\server\data\rtdb.db");
+                try
                 {
-                        if (ln.Contains(userLogin) && ln.Contains(refToken))
-                        {
-                            return refToken;
-                        }
+                    sqlite_conn.Open();
                 }
-            }
-                return "";
+                catch (Exception ex)
+                {
+                    sqlite_conn.Close();
+                    return ex + "-не могу подключиться к бд";
+                }
+                using (SQLiteCommand sqlite_cmd = new SQLiteCommand(sqlite_conn))
+                {
+                    sqlite_cmd.CommandText = "SELECT rt,extime FROM rtdb where lgn=\""+ userLogin + "\"";
+                    SQLiteDataReader sqlite_datareader;
+                    sqlite_datareader = sqlite_cmd.ExecuteReader();
+                    while (sqlite_datareader.Read())
+                    {
+                        if (refToken == sqlite_datareader.GetString(0) && DateTime.Compare(DateTime.Parse(sqlite_datareader.GetString(1)), DateTime.UtcNow) > -1)
+                        {
+                            string res = sqlite_datareader.GetString(0);
+                            sqlite_datareader.Close();
+                            sqlite_conn.Close();
+                            return res;
+                        }
+                    }
+                    sqlite_datareader.Close();
+                    sqlite_cmd.Dispose();
+                }
+                sqlite_conn.Close();
+            }            
+            return "";
         }
-        public JsonResult RegUser(JsonElement userData)
+
+            public JsonResult RegUser(JsonElement userData)
         {
             if (CheckCreds(userData))
             {
                 JsonElement userDataForToken = JsonSerializer.SerializeToElement(new string[] { userData[0].ToString(), userData[2].ToString() });        
                
-                return new JsonResult(TokenCreate(userDataForToken, 2, 60));
+                return new JsonResult(TokenCreate(userDataForToken, 30, 60));
             }
             return new JsonResult("WrongCreds");
         }
