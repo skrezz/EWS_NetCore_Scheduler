@@ -17,3 +17,6 @@ services:
     ports:
       - "9080:9080"
     container_name: scheduler-client
+    volumes:
+      - ./client/crt/rootCA.crt:/etc/nginx/ssl/rootCA.crt:ro
+      - ./client/crt/rootCA.key:/etc/nginx/ssl/rootCA.key:ro
