@@ -49,3 +49,13 @@ body {
   justify-content: left;
   align-items: center;  
 }
+.AuthButton{ 
+  position: fixed;
+  top: 40px;
+  left: 20px;  
+  background-color: #f1f1f1; /* Цвет фона Header */
+  z-index: 10; /* Поднять Header над контентом */
+  display: flex;
+  justify-content: left;
+  align-items: center;  
+}
