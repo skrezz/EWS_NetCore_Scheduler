@@ -146,7 +146,7 @@ namespace EWS_NetCore_Scheduler.Service
         {           
             if (File.Exists(Globs.refTokensPath))
             {
-                SQLiteConnection sqlite_conn = new SQLiteConnection(@"Data Source=D:\Proggin\Igor\Scheduler\EWS_NetCore_Scheduler\server\data\rtdb.db");
+                SQLiteConnection sqlite_conn = new SQLiteConnection(@"Data Source=/var/server/data/rtdb.db");
                 try
                 {
                     sqlite_conn.Open();
