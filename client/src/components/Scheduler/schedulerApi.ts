@@ -1,7 +1,9 @@
 import { AppointmentModel } from "@devexpress/dx-react-scheduler";
 import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { API_BASE_URL, ICalendar } from "../Support/Models";
+import { ICalendar, API_BASE_URL } from "../Support/Models";
+
+
 
 
 //get appos
