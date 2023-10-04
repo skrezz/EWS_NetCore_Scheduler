@@ -5,10 +5,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5152
-      - EWS_USER=${EWS_USER}
-      - EWS_PWD=${EWS_PWD}
       - TZ=${TZ}
     container_name: scheduler-server
+    ports:
+      - 5152:5152
+      - 7151:7151
+    volumes:
+      - ./server/data:/var/server/data   
   client:
     build: ./client
     ports:
