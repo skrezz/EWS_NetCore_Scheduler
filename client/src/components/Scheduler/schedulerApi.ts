@@ -3,7 +3,7 @@ import axios from "axios";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { ICalendar } from "../Support/Models";
 
-const API_BASE_URL = "http://localhost:5152/EWSApiScheduler";
+const API_BASE_URL = "https://scheduler.demo.com/api/EWSApiScheduler";
 
 
 
