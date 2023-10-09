@@ -32,7 +32,7 @@ namespace EWS_NetCore_Scheduler.Service
             service.Credentials = exCreds;
             service.TraceEnabled = true;
             service.TraceFlags = TraceFlags.All;
-            service.Url = new Uri("https://outlook.office365.com/EWS/Exchange.asmx");
+            service.Url = new Uri(Environment.GetEnvironmentVariable("OUT_URI"));
             //проверка подлинности кредов
             
             try
