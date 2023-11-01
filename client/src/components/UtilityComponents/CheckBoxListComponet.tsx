@@ -9,7 +9,6 @@ interface ICheckBoxParams {
 }
 
 export function CheckBoxRender(params: ICheckBoxParams) {
-
   return (
     <Box>
       <Box>

@@ -1,4 +1,5 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
+RUN mkdir -p /var/server/data
 WORKDIR /App
 
 # Copy everything
